@@ -64,8 +64,8 @@ export function ImageGallery({ faded = false }: { faded?: boolean }) {
 
   return (
     <div
-      className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 overflow-hidden pointer-events-none"
-      style={{ width: windowWidth, height: IMG_SIZE + ARC_AMPLITUDE * 2 }}
+      className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 overflow-hidden pointer-events-none transition-opacity duration-[2500ms] ease-out"
+      style={{ width: windowWidth, height: IMG_SIZE + ARC_AMPLITUDE * 2, opacity: faded ? 0 : 1 }}
       aria-hidden
     >
       <div className="relative w-full h-full">
