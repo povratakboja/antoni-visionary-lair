@@ -18,10 +18,11 @@ export function FlashOverlay({ flashKey, intensity }: Props) {
   return (
     <div
       aria-hidden
-      className="pointer-events-none fixed inset-0 z-[60] bg-white transition-opacity"
+      className="pointer-events-none fixed inset-0 bg-white"
       style={{
+        zIndex: 2147483646,
         opacity,
-        transitionDuration: opacity === 0 ? "260ms" : "80ms",
+        transition: `opacity ${opacity === 0 ? 260 : 80}ms ease-out`,
       }}
     />
   );
