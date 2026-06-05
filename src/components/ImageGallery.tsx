@@ -19,7 +19,7 @@ const STEP = IMG_SIZE + GAP;
 const ARC_AMPLITUDE = 28; // subtle hill height in px
 const SPEED = 30; // px per second
 
-export function ImageGallery() {
+export function ImageGallery({ faded = false }: { faded?: boolean }) {
   const loop = useMemo(() => [...IMAGES, ...IMAGES], []);
   const itemsRef = useRef<(HTMLImageElement | null)[]>([]);
   const rafRef = useRef<number | null>(null);
