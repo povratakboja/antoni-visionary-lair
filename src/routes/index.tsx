@@ -112,12 +112,23 @@ function Index() {
           <div className="pointer-events-none fixed inset-0 z-40 flex items-center justify-center px-6">
             <p
               className="max-w-3xl text-center font-serif italic leading-tight transition-colors"
-              style={{
-                fontSize: "clamp(2.5rem, 5vw, 4rem)",
-                color: deepSpace ? "#e8e8f0" : "#1a1a1a",
-              }}
+              style={
+                quote.index === 2
+                  ? {
+                      fontSize: "3.75rem",
+                      color: deepSpace ? "#e8e8f0" : "#1a1a1a",
+                      background: "rgba(245, 242, 238, 0.85)",
+                      padding: "2rem 3rem",
+                      backdropFilter: "blur(4px)",
+                      WebkitBackdropFilter: "blur(4px)",
+                    }
+                  : {
+                      fontSize: "2.5rem",
+                      color: deepSpace ? "#e8e8f0" : "#1a1a1a",
+                    }
+              }
             >
-              {quote}
+              {quote.text}
             </p>
           </div>
         )}
