@@ -1,4 +1,4 @@
-import { AnimatePresence, motion } from "framer-motion";
+import { useEffect, useState } from "react";
 
 type Props = {
   flashKey: number;
@@ -6,18 +6,23 @@ type Props = {
 };
 
 export function FlashOverlay({ flashKey, intensity }: Props) {
+  const [opacity, setOpacity] = useState(0);
+
+  useEffect(() => {
+    if (flashKey === 0) return;
+    setOpacity(intensity);
+    const t = window.setTimeout(() => setOpacity(0), 90);
+    return () => window.clearTimeout(t);
+  }, [flashKey, intensity]);
+
   return (
-    <AnimatePresence>
-      {flashKey > 0 && (
-        <motion.div
-          key={flashKey}
-          className="pointer-events-none fixed inset-0 z-[60] bg-white"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: intensity }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.18, ease: "easeOut" }}
-        />
-      )}
-    </AnimatePresence>
+    <div
+      aria-hidden
+      className="pointer-events-none fixed inset-0 z-[60] bg-white transition-opacity"
+      style={{
+        opacity,
+        transitionDuration: opacity === 0 ? "260ms" : "80ms",
+      }}
+    />
   );
 }
