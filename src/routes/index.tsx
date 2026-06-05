@@ -31,6 +31,8 @@ function Index() {
   const [galleryFaded, setGalleryFaded] = useState(false);
   const [flashKey, setFlashKey] = useState(0);
   const [flashIntensity, setFlashIntensity] = useState(0);
+  const [showTunnel, setShowTunnel] = useState(false);
+  const navigate = useNavigate();
 
   const handleLoadingComplete = useCallback(() => setIsLoading(false), []);
 
@@ -52,13 +54,19 @@ function Index() {
       } else if (n >= 3) {
         triggerFlash(0.95);
         setDeepSpace(true);
+        setQuote(null);
         // begin gallery fade alongside background transition
         window.setTimeout(() => setGalleryFaded(true), 50);
-        // TODO: trigger tunnel sequence after images fully faded (next prompt)
+        // once images have faded, launch the tunnel sequence
+        window.setTimeout(() => setShowTunnel(true), 2800);
       }
     },
     [triggerFlash],
   );
+
+  const handleTunnelComplete = useCallback(() => {
+    navigate({ to: "/not-found" });
+  }, [navigate]);
 
   return (
     <>
