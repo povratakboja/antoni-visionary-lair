@@ -1,29 +1,33 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useState, useCallback } from "react";
+import { LoadingScreen } from "@/components/LoadingScreen";
+import { Navigation } from "@/components/Navigation";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Your App" },
-      { name: "description", content: "Replace this with a one-sentence description of your app." },
-      { property: "og:title", content: "Your App" },
-      { property: "og:description", content: "Replace this with a one-sentence description of your app." },
+      { title: "ˈvɪʒəˌnɛɹi — Antoni Bonačić Vičić" },
+      { name: "description", content: "Personal brand website of Antoni Bonačić Vičić." },
+      { property: "og:title", content: "ˈvɪʒəˌnɛɹi — Antoni Bonačić Vičić" },
+      { property: "og:description", content: "Personal brand website of Antoni Bonačić Vičić." },
     ],
   }),
   component: Index,
 });
 
-// IMPORTANT: Replace this placeholder. See ./README.md for routing conventions.
 function Index() {
+  const [isLoading, setIsLoading] = useState(true);
+
+  const handleLoadingComplete = useCallback(() => {
+    setIsLoading(false);
+  }, []);
+
   return (
-    <div
-      className="flex min-h-screen items-center justify-center"
-      style={{ backgroundColor: "#fcfbf8" }}
-    >
-      <img
-        data-lovable-blank-page-placeholder="REMOVE_THIS"
-        src="https://cdn.gpteng.co/blank-app-v1.svg"
-        alt="Your app will live here!"
-      />
-    </div>
+    <>
+      {isLoading && <LoadingScreen onComplete={handleLoadingComplete} />}
+      <div className="relative min-h-screen bg-[#F5F2EE]">
+        <Navigation />
+      </div>
+    </>
   );
 }
