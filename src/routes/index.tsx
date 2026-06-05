@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState, useCallback } from "react";
 import { LoadingScreen } from "@/components/LoadingScreen";
 import { Navigation } from "@/components/Navigation";
+import { ImageGallery } from "@/components/ImageGallery";
 
 export const Route = createFileRoute("/")({
   head: () => ({
