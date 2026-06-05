@@ -33,12 +33,14 @@ type Particle = {
 
 function spawn(initial = false): Particle {
   const ang = Math.random() * Math.PI * 2;
-  const r = 120 + Math.random() * 1100;
+  const r = 100 + Math.random() * 1200;
+  // Bias initial particles toward the far plane so they appear as tiny dots.
+  const initialZ = FAR_Z + Math.pow(Math.random(), 4) * SPAN;
   return {
     src: IMAGES[Math.floor(Math.random() * IMAGES.length)],
     x: Math.cos(ang) * r,
     y: Math.sin(ang) * r,
-    z: initial ? FAR_Z + Math.random() * SPAN : FAR_Z + Math.random() * 300,
+    z: initial ? initialZ : FAR_Z + Math.random() * 600,
     rot: (Math.random() - 0.5) * 40,
     size: 180 + Math.random() * 140,
   };
