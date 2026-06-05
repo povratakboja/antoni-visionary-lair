@@ -14,10 +14,11 @@ const IMAGES = [
 ];
 
 const N_PARTICLES = 70;
-const FAR_Z = -3500;
-const NEAR_Z = 600;
+// Deep enough that perspective=900 makes far particles ~scale 0.02 (tiny dots).
+const FAR_Z = -44000;
+const NEAR_Z = 700;
 const SPAN = NEAR_Z - FAR_Z;
-const RAMP_MS = 5500; // ramp-up duration
+const RAMP_MS = 5500; // exponential ramp-up
 const HOLD_MS = 5500; // peak hyperspace hold
 const RUSH_MS = RAMP_MS + HOLD_MS;
 
