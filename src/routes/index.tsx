@@ -44,10 +44,10 @@ function Index() {
     (n: number) => {
       if (n === 1) {
         triggerFlash(0.45);
-        setQuote(QUOTES[1]);
+        setQuote({ text: QUOTES[1], index: 1 });
       } else if (n === 2) {
         triggerFlash(0.7);
-        setQuote(QUOTES[2]);
+        setQuote({ text: QUOTES[2], index: 2 });
       } else if (n >= 3) {
         triggerFlash(0.95);
         setDeepSpace(true);
