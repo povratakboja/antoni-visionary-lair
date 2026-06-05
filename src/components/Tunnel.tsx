@@ -144,7 +144,7 @@ export function Tunnel({ onComplete }: { onComplete: () => void }) {
 
   return (
     <div
-      className="fixed inset-0 z-[9000] overflow-hidden bg-black"
+      className="fixed inset-0 z-[9000] overflow-hidden"
       style={{ pointerEvents: "all", cursor: "none" }}
       aria-hidden
     >
