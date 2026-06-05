@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState, useCallback } from "react";
 import { LoadingScreen } from "@/components/LoadingScreen";
 import { Navigation } from "@/components/Navigation";
+import { ImageGallery } from "@/components/ImageGallery";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -25,8 +26,9 @@ function Index() {
   return (
     <>
       {isLoading && <LoadingScreen onComplete={handleLoadingComplete} />}
-      <div className="relative min-h-screen bg-[#F5F2EE]">
+      <div className="relative min-h-screen bg-[#F5F2EE] overflow-hidden">
         <Navigation />
+        <ImageGallery />
       </div>
     </>
   );
