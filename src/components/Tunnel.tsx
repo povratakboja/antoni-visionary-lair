@@ -171,11 +171,17 @@ export function Tunnel({ onComplete }: { onComplete: () => void }) {
     >
       <div
         className="absolute inset-0"
-        style={{ perspective: "900px", perspectiveOrigin: "50% 50%" }}
+        style={{ perspective: "900px", perspectiveOrigin: "50% 100%" }}
       >
+        {/* Vanishing point anchored to center-bottom of the screen. */}
         <div
-          className="absolute left-1/2 top-1/2"
-          style={{ transformStyle: "preserve-3d", width: 0, height: 0 }}
+          className="absolute left-1/2"
+          style={{
+            top: "100%",
+            transformStyle: "preserve-3d",
+            width: 0,
+            height: 0,
+          }}
         >
           {partsRef.current.map((p, i) => (
             <div
@@ -193,14 +199,15 @@ export function Tunnel({ onComplete }: { onComplete: () => void }) {
                 backgroundSize: "cover",
                 backgroundPosition: "center",
                 willChange: "transform, filter, opacity",
-                // Initialize invisible at the far plane — no first-frame pop-in.
+                // Initialize tiny and invisible — no first-frame pop-in.
                 opacity: 0,
-                transform: `translate3d(${p.x}px, ${p.y}px, ${FAR_Z}px)`,
+                transform: `translate3d(${p.x}px, ${p.y}px, ${FAR_Z}px) scale(0.005)`,
               }}
             />
           ))}
         </div>
       </div>
+
 
       <motion.div
         className="absolute inset-0 bg-black"
