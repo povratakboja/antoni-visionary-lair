@@ -13,13 +13,15 @@ const IMAGES = [
   "https://picsum.photos/seed/abv8/600/600",
 ];
 
-const N_PARTICLES = 90;
+const N_PARTICLES = 160;
 const FAR_Z = -60000;
 const NEAR_Z = 700;
 const SPAN = NEAR_Z - FAR_Z;
-const RAMP_MS = 6000; // very-slow → hyperspace
-const HOLD_MS = 1200;
+const RAMP_MS = 12500; // very-slow → hyperspace
+const HOLD_MS = 1500;
 const RUSH_MS = RAMP_MS + HOLD_MS;
+// Time between each doubling of the active image count: 1 → 2 → 4 → 8 → ...
+const DOUBLE_STEP_MS = 1450;
 
 type Particle = {
   src: string;
@@ -31,18 +33,14 @@ type Particle = {
   delay: number; // ms before this particle becomes visible
 };
 
-function rand(min: number, max: number) {
-  return min + Math.random() * (max - min);
-}
-
 function makeParticle(delay: number): Particle {
   const ang = Math.random() * Math.PI * 2;
-  const r = 80 + Math.random() * 1100;
+  const r = 60 + Math.random() * 1100;
   return {
     src: IMAGES[Math.floor(Math.random() * IMAGES.length)],
     x: Math.cos(ang) * r,
     y: Math.sin(ang) * r,
-    z: FAR_Z + Math.random() * 400, // start at far plane
+    z: FAR_Z + Math.random() * 400,
     rot: (Math.random() - 0.5) * 40,
     size: 200 + Math.random() * 160,
     delay,
@@ -52,13 +50,15 @@ function makeParticle(delay: number): Particle {
 type Phase = "rushing" | "fadeBlack" | "holdText" | "tvOff" | "done";
 
 export function Tunnel({ onComplete }: { onComplete: () => void }) {
-  // Stagger each particle's start across the full ramp so the pipeline
-  // is always populated with images at different distances — never empty,
-  // never a sudden pop-in.
+  // Doubling schedule: particle i activates at step ceil(log2(i+1)).
+  // i=0 → step 0 (t=0), i=1 → step 1, i=2..3 → step 2, i=4..7 → step 3, etc.
   const partsRef = useRef<Particle[]>(
-    Array.from({ length: N_PARTICLES }, (_, i) =>
-      makeParticle(rand(0, RAMP_MS * 0.85) * (i / N_PARTICLES + 0.2)),
-    ),
+    Array.from({ length: N_PARTICLES }, (_, i) => {
+      const step = i === 0 ? 0 : Math.ceil(Math.log2(i + 1));
+      const jitter = Math.random() * DOUBLE_STEP_MS * 0.4;
+      const delay = Math.min(RAMP_MS * 0.95, step * DOUBLE_STEP_MS + jitter);
+      return makeParticle(delay);
+    }),
   );
   const elsRef = useRef<(HTMLDivElement | null)[]>([]);
   const rafRef = useRef<number | null>(null);
@@ -82,10 +82,10 @@ export function Tunnel({ onComplete }: { onComplete: () => void }) {
       const dt = Math.min((t - lastTRef.current) / 1000, 0.05);
       lastTRef.current = t;
 
-      // Steep exponential: barely moves for ~3s, then hyperspace.
+      // Very steep ramp: barely moves for ~5s, then hyperspace.
       const rampT = Math.min(elapsed / RAMP_MS, 1);
-      const eased = Math.pow(rampT, 4);
-      const speed = 10 + eased * 90000;
+      const eased = Math.pow(rampT, 5);
+      const speed = 8 + eased * 140000;
 
       const parts = partsRef.current;
       for (let i = 0; i < parts.length; i++) {
@@ -93,10 +93,10 @@ export function Tunnel({ onComplete }: { onComplete: () => void }) {
         const el = elsRef.current[i];
         if (!el) continue;
 
-        // Particle not yet spawned: keep invisible at extreme distance.
+        // Particle not yet spawned: invisible, parked at far plane.
         if (elapsed < p.delay) {
           el.style.opacity = "0";
-          el.style.transform = `translate3d(${p.x}px, ${p.y}px, ${FAR_Z}px) scale(1)`;
+          el.style.transform = `translate3d(${p.x}px, ${p.y}px, ${FAR_Z}px) scale(0.005)`;
           el.style.filter = "none";
           continue;
         }
@@ -113,17 +113,17 @@ export function Tunnel({ onComplete }: { onComplete: () => void }) {
         }
 
         const near01 = (p.z - FAR_Z) / SPAN; // 0 far → 1 near
-        // Radial clarity: center is sharp & opaque, periphery dim & blurred.
+        // Radial clarity: center passes are sharp & fully opaque,
+        // periphery fades to ~0.15 with stronger blur.
         const lateral = Math.hypot(p.x, p.y);
-        const centerness = Math.max(0, 1 - lateral / 900); // 1 center → 0 edge
-        const baseOpacity = 0.2 + centerness * 0.8; // 0.2 edge → 1.0 center
-        // Fade in/out across depth so nothing pops.
-        const depthFade = Math.min(1, near01 * 2.2) * Math.min(1, (1 - near01) * 6 + 0.3);
+        const centerness = Math.max(0, 1 - lateral / 700); // 1 center → 0 edge
+        const baseOpacity = 0.15 + centerness * 0.85;
+        const depthFade = Math.min(1, near01 * 2.4) * Math.min(1, (1 - near01) * 6 + 0.3);
         const opacity = Math.min(1, baseOpacity * depthFade);
 
-        const lateralBlur = (1 - centerness) * (4 + eased * 18);
-        const speedBlur = Math.pow(eased, 1.6) * 16 * (0.2 + near01);
-        const blur = Math.min(48, lateralBlur + speedBlur);
+        const lateralBlur = (1 - centerness) * (3 + eased * 22);
+        const speedBlur = Math.pow(eased, 1.6) * 14 * (0.2 + near01);
+        const blur = Math.min(48, centerness > 0.92 ? 0 : lateralBlur + speedBlur);
 
         const stretchY = 1 + Math.pow(eased, 2) * near01 * 5;
 
@@ -143,6 +143,7 @@ export function Tunnel({ onComplete }: { onComplete: () => void }) {
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
     };
   }, []);
+
 
   useEffect(() => {
     if (phase === "fadeBlack") {
