@@ -25,7 +25,7 @@ const QUOTES: Record<number, string> = {
 
 function Index() {
   const [isLoading, setIsLoading] = useState(true);
-  const [quote, setQuote] = useState<string | null>(null);
+  const [quote, setQuote] = useState<{ text: string; index: 1 | 2 } | null>(null);
   const [deepSpace, setDeepSpace] = useState(false);
   const [galleryFaded, setGalleryFaded] = useState(false);
   const [flashKey, setFlashKey] = useState(0);
