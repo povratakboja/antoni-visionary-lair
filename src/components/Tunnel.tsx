@@ -76,10 +76,10 @@ export function Tunnel({ onComplete }: { onComplete: () => void }) {
       const dt = Math.min((t - lastTRef.current) / 1000, 0.05);
       lastTRef.current = t;
 
-      // Speed ramps from 180 to 4200 px/s with ease-in over RAMP_MS, then holds.
+      // Exponential acceleration: almost still → moderate → hyperspace.
       const rampT = Math.min(elapsed / RAMP_MS, 1);
-      const eased = rampT * rampT;
-      const speed = 180 + eased * 4020;
+      const eased = Math.pow(rampT, 4); // aggressive exponential curve
+      const speed = 40 + eased * 60000; // px/s along z
 
       const parts = partsRef.current;
       for (let i = 0; i < parts.length; i++) {
@@ -98,11 +98,15 @@ export function Tunnel({ onComplete }: { onComplete: () => void }) {
         if (!el) continue;
         const lateral = Math.hypot(p.x, p.y);
         const near01 = (p.z - FAR_Z) / SPAN; // 0 far, 1 near
-        const blurAmt = Math.min(
-          26,
-          Math.max(0, (lateral - 180) / 55) * (0.3 + near01) * (0.35 + eased),
-        );
-        el.style.transform = `translate3d(${p.x}px, ${p.y}px, ${p.z}px) rotate(${p.rot}deg)`;
+        // Lateral blur (periphery) scaled by global speed.
+        const lateralBlur =
+          Math.max(0, (lateral - 160) / 50) * (0.4 + near01) * (0.4 + eased * 4);
+        // Global hyperspace blur grows with speed and is strongest near the camera.
+        const speedBlur = Math.pow(eased, 1.5) * 22 * (0.25 + near01);
+        const blurAmt = Math.min(48, lateralBlur + speedBlur);
+        // Vertical stretch grows with speed → light-streak feel near the camera.
+        const stretchY = 1 + Math.pow(eased, 2) * near01 * 6;
+        el.style.transform = `translate3d(${p.x}px, ${p.y}px, ${p.z}px) scaleY(${stretchY}) rotate(${p.rot}deg)`;
         el.style.filter = blurAmt > 0.3 ? `blur(${blurAmt}px)` : "none";
         el.style.opacity = String(Math.min(1, near01 * 1.6));
       }
