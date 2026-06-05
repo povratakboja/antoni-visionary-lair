@@ -80,10 +80,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { title: "ˈvɪʒəˌnɛɹi" },
       { name: "description", content: "Personal brand website of Antoni Bonačić Vičić." },
       { name: "author", content: "Antoni Bonačić Vičić" },
-      { property: "og:title", content: "ˈvɪʒəˌnɛɹi — Antoni Bonačić Vičić" },
+      { property: "og:title", content: "ˈvɪʒəˌnɛɹi" },
       { property: "og:description", content: "Personal brand website of Antoni Bonačić Vičić." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
+      { name: "twitter:title", content: "ˈvɪʒəˌnɛɹi" },
+      { name: "twitter:description", content: "Personal brand website of Antoni Bonačić Vičić." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/c40638b7-4092-478a-b63d-55686ee303b4/id-preview-bba1edbc--ec0582e0-2891-4242-9648-be8cfed9f9dc.lovable.app-1780632452604.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/c40638b7-4092-478a-b63d-55686ee303b4/id-preview-bba1edbc--ec0582e0-2891-4242-9648-be8cfed9f9dc.lovable.app-1780632452604.png" },
     ],
     links: [
       {
