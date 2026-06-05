@@ -26,8 +26,9 @@ function Index() {
   return (
     <>
       {isLoading && <LoadingScreen onComplete={handleLoadingComplete} />}
-      <div className="relative min-h-screen bg-[#F5F2EE]">
+      <div className="relative min-h-screen bg-[#F5F2EE] overflow-hidden">
         <Navigation />
+        <ImageGallery />
       </div>
     </>
   );
