@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef } from "react";
 
 type Props = {
   flashKey: number;
@@ -6,23 +6,37 @@ type Props = {
 };
 
 export function FlashOverlay({ flashKey, intensity }: Props) {
-  const [opacity, setOpacity] = useState(0);
+  const ref = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     if (flashKey === 0) return;
-    setOpacity(intensity);
-    const t = window.setTimeout(() => setOpacity(0), 90);
+    const el = ref.current;
+    if (!el) return;
+    // Animate to peak intensity, then back to 0
+    el.style.transition = "opacity 80ms ease-out";
+    el.style.opacity = String(intensity);
+    const t = window.setTimeout(() => {
+      el.style.transition = "opacity 260ms ease-out";
+      el.style.opacity = "0";
+    }, 90);
     return () => window.clearTimeout(t);
   }, [flashKey, intensity]);
 
   return (
     <div
+      id="flash-overlay"
       aria-hidden
-      className="pointer-events-none fixed inset-0 bg-white"
+      ref={ref}
       style={{
-        zIndex: 2147483646,
-        opacity,
-        transition: `opacity ${opacity === 0 ? 260 : 80}ms ease-out`,
+        position: "fixed",
+        top: 0,
+        left: 0,
+        width: "100vw",
+        height: "100vh",
+        background: "white",
+        zIndex: 9999,
+        pointerEvents: "none",
+        opacity: 0,
       }}
     />
   );

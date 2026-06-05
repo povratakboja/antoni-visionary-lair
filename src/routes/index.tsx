@@ -25,7 +25,7 @@ const QUOTES: Record<number, string> = {
 
 function Index() {
   const [isLoading, setIsLoading] = useState(true);
-  const [quote, setQuote] = useState<string | null>(null);
+  const [quote, setQuote] = useState<{ text: string; index: 1 | 2 } | null>(null);
   const [deepSpace, setDeepSpace] = useState(false);
   const [galleryFaded, setGalleryFaded] = useState(false);
   const [flashKey, setFlashKey] = useState(0);
@@ -44,10 +44,10 @@ function Index() {
     (n: number) => {
       if (n === 1) {
         triggerFlash(0.45);
-        setQuote(QUOTES[1]);
+        setQuote({ text: QUOTES[1], index: 1 });
       } else if (n === 2) {
         triggerFlash(0.7);
-        setQuote(QUOTES[2]);
+        setQuote({ text: QUOTES[2], index: 2 });
       } else if (n >= 3) {
         triggerFlash(0.95);
         setDeepSpace(true);
@@ -112,12 +112,23 @@ function Index() {
           <div className="pointer-events-none fixed inset-0 z-40 flex items-center justify-center px-6">
             <p
               className="max-w-3xl text-center font-serif italic leading-tight transition-colors"
-              style={{
-                fontSize: "clamp(2.5rem, 5vw, 4rem)",
-                color: deepSpace ? "#e8e8f0" : "#1a1a1a",
-              }}
+              style={
+                quote.index === 2
+                  ? {
+                      fontSize: "3.75rem",
+                      color: deepSpace ? "#e8e8f0" : "#1a1a1a",
+                      background: "rgba(245, 242, 238, 0.85)",
+                      padding: "2rem 3rem",
+                      backdropFilter: "blur(4px)",
+                      WebkitBackdropFilter: "blur(4px)",
+                    }
+                  : {
+                      fontSize: "2.5rem",
+                      color: deepSpace ? "#e8e8f0" : "#1a1a1a",
+                    }
+              }
             >
-              {quote}
+              {quote.text}
             </p>
           </div>
         )}
