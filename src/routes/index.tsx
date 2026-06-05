@@ -1,10 +1,11 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useCallback, useState } from "react";
 import { LoadingScreen } from "@/components/LoadingScreen";
 import { Navigation } from "@/components/Navigation";
 import { ImageGallery } from "@/components/ImageGallery";
 import { HurryButton } from "@/components/HurryButton";
 import { FlashOverlay } from "@/components/FlashOverlay";
+import { Tunnel } from "@/components/Tunnel";
 
 export const Route = createFileRoute("/")({
   head: () => ({
