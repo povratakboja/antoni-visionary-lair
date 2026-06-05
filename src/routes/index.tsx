@@ -144,6 +144,7 @@ function Index() {
 
         <FlashOverlay flashKey={flashKey} intensity={flashIntensity} />
       </div>
+      {showTunnel && <Tunnel onComplete={handleTunnelComplete} />}
     </>
   );
 }
