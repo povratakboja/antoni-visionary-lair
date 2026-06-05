@@ -1,10 +1,11 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useCallback, useState } from "react";
 import { LoadingScreen } from "@/components/LoadingScreen";
 import { Navigation } from "@/components/Navigation";
 import { ImageGallery } from "@/components/ImageGallery";
 import { HurryButton } from "@/components/HurryButton";
 import { FlashOverlay } from "@/components/FlashOverlay";
+import { Tunnel } from "@/components/Tunnel";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -30,6 +31,8 @@ function Index() {
   const [galleryFaded, setGalleryFaded] = useState(false);
   const [flashKey, setFlashKey] = useState(0);
   const [flashIntensity, setFlashIntensity] = useState(0);
+  const [showTunnel, setShowTunnel] = useState(false);
+  const navigate = useNavigate();
 
   const handleLoadingComplete = useCallback(() => setIsLoading(false), []);
 
@@ -51,13 +54,19 @@ function Index() {
       } else if (n >= 3) {
         triggerFlash(0.95);
         setDeepSpace(true);
+        setQuote(null);
         // begin gallery fade alongside background transition
         window.setTimeout(() => setGalleryFaded(true), 50);
-        // TODO: trigger tunnel sequence after images fully faded (next prompt)
+        // once images have faded, launch the tunnel sequence
+        window.setTimeout(() => setShowTunnel(true), 2800);
       }
     },
     [triggerFlash],
   );
+
+  const handleTunnelComplete = useCallback(() => {
+    navigate({ to: "/not-found" });
+  }, [navigate]);
 
   return (
     <>
@@ -135,6 +144,7 @@ function Index() {
 
         <FlashOverlay flashKey={flashKey} intensity={flashIntensity} />
       </div>
+      {showTunnel && <Tunnel onComplete={handleTunnelComplete} />}
     </>
   );
 }
