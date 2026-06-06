@@ -40,7 +40,7 @@ export function ImageGallery({ faded = false, active = true }: { faded?: boolean
   // Visible travel range: from fully off-screen right (drawX = vw)
   // to fully off-screen left (drawX = -IMG_SIZE). Distance = vw + IMG_SIZE.
   // Keep STEP at travelWidth/IMAGES.length so visual density / speed match before.
-  const travelWidth = vw + IMG_SIZE * 2;
+  const travelWidth = vw + IMG_SIZE * 2 + 324; // +324 preserves the original inter-image gap
   const STEP = travelWidth / IMAGES.length;
   const travelDistance = vw + IMG_SIZE; // px an image actually crosses on screen
   const travelTime = travelDistance / SPEED; // seconds an image is alive on screen
