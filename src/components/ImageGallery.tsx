@@ -48,10 +48,13 @@ export function ImageGallery({ faded = false }: { faded?: boolean }) {
         x = ((x % totalWidth) + totalWidth) % totalWidth;
         if (x > totalWidth - STEP) x -= totalWidth;
         const centerX = x + IMG_SIZE / 2;
-        // parabolic arc: 0 at edges, -ARC_AMPLITUDE at center
+        // U-curve: peak (0) at horizontal center, edges dip down to +ARC_AMPLITUDE
         const norm = (centerX - arcCenter) / arcHalf; // -1..1 across window
-        const arcY = -ARC_AMPLITUDE * Math.max(0, 1 - norm * norm);
-        el.style.transform = `translate(${x}px, ${arcY}px)`;
+        const clamped = Math.max(-1, Math.min(1, norm));
+        const arcY = ARC_AMPLITUDE * clamped * clamped;
+        // Tilt: lean left at the entering edge, straight at top, lean right at exit
+        const rot = clamped * MAX_TILT;
+        el.style.transform = `translate(${x}px, ${arcY}px) rotate(${rot}deg)`;
       });
 
       rafRef.current = requestAnimationFrame(tick);
