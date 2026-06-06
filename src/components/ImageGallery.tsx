@@ -40,8 +40,10 @@ export function ImageGallery({ faded = false }: { faded?: boolean }) {
     return () => window.removeEventListener("resize", onResize);
   }, []);
 
+  // Belt step = viewport / VISIBLE so VISIBLE slots exactly fill 100vw.
+  // Gap is whatever space is left over after the square image.
   const imgSize = vw * IMG_SIZE_VW;
-  const step = imgSize + GAP_PX;
+  const step = vw / VISIBLE;
   const windowWidth = vw;
   const totalWidth = IMAGES.length * step;
   const arcCenter = windowWidth / 2;
