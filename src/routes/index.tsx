@@ -24,6 +24,8 @@ const QUOTES: Record<number, string> = {
   2: "Good things are worth waiting for but they expire too fast if we rush them",
 };
 
+const STARS_BG = "PLACEHOLDER";
+
 function Index() {
   const [isLoading, setIsLoading] = useState(true);
   const [heroDone, setHeroDone] = useState(false);
