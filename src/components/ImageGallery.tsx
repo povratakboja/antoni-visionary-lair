@@ -12,11 +12,11 @@ const IMAGE_3 = gallery3.url;
 
 const IMAGES = [IMAGE_1, IMAGE_2, IMAGE_3];
 
-const IMG_SIZE_VW = 0.28; // each image is a square ~28vw on each side
-const GAP_PX = 50; // px gap between images
+const VISIBLE = 3; // images that fit across the viewport at any moment
+const IMG_SIZE_VW = 0.28; // square image side (≤ 1/VISIBLE so gaps fit on screen)
 const ARC_DROP = 180; // px: how much lower side images sit vs center
 const MAX_TILT = 28; // degrees at the edges
-const SPEED = 60; // px per second
+const SPEED = 60; // px per second — constant linear belt speed
 
 export function ImageGallery({ faded = false }: { faded?: boolean }) {
   const loop = useMemo(() => [...IMAGES, ...IMAGES], []);
