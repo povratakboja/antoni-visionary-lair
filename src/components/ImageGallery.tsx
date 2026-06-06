@@ -35,9 +35,8 @@ export function ImageGallery({ faded = false }: { faded?: boolean }) {
     return () => window.removeEventListener("resize", onResize);
   }, []);
 
-  const imgSize = vw * IMG_VW;
-  const step = vw * SLOT_VW;
-  const windowWidth = vw;
+  const imgSize = vw * IMG_SIZE_VW;
+  const step = imgSize + GAP_PX;
   const totalWidth = IMAGES.length * step;
   const arcCenter = windowWidth / 2;
   const arcHalf = windowWidth / 2;
