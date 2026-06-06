@@ -16,7 +16,10 @@ export function HurryButton({ onAllowedClick, onHoverFlash, disabled }: Props) {
 
   const handleEnter = useCallback(() => {
     if (disabled) return;
-    onHoverFlash();
+    // Only flash on hover before the first click ever happens
+    if (clickCount === 0) {
+      onHoverFlash();
+    }
     // Start the one-shot 2s timer only on the very first hover. Never reset.
     if (!timerStartedRef.current) {
       timerStartedRef.current = true;
@@ -24,7 +27,7 @@ export function HurryButton({ onAllowedClick, onHoverFlash, disabled }: Props) {
         setUnlocked(true);
       }, HOVER_LOCKOUT_MS);
     }
-  }, [disabled, onHoverFlash]);
+  }, [disabled, clickCount, onHoverFlash]);
 
   const handleClick = useCallback(() => {
     if (disabled) return;

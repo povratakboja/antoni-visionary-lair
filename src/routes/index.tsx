@@ -32,6 +32,7 @@ function Index() {
   const [galleryFaded, setGalleryFaded] = useState(false);
   const [flashKey, setFlashKey] = useState(0);
   const [flashIntensity, setFlashIntensity] = useState(0);
+  const [flashMultiplier, setFlashMultiplier] = useState(1);
   const [showTunnel, setShowTunnel] = useState(false);
   const navigate = useNavigate();
 
