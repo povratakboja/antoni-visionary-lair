@@ -96,18 +96,10 @@ export function Tunnel({ onComplete }: { onComplete: () => void }) {
         }
         const el = elsRef.current[i];
         if (!el) continue;
-        const lateral = Math.hypot(p.x, p.y);
         const near01 = (p.z - FAR_Z) / SPAN; // 0 far, 1 near
-        // Lateral blur (periphery) scaled by global speed.
-        const lateralBlur =
-          Math.max(0, (lateral - 160) / 50) * (0.4 + near01) * (0.4 + eased * 4);
-        // Global hyperspace blur grows with speed and is strongest near the camera.
-        const speedBlur = Math.pow(eased, 1.5) * 22 * (0.25 + near01);
-        const blurAmt = Math.min(48, lateralBlur + speedBlur);
         // Vertical stretch grows with speed → light-streak feel near the camera.
         const stretchY = 1 + Math.pow(eased, 2) * near01 * 6;
         el.style.transform = `translate3d(${p.x}px, ${p.y}px, ${p.z}px) scaleY(${stretchY}) rotate(${p.rot}deg)`;
-        el.style.filter = blurAmt > 0.3 ? `blur(${blurAmt}px)` : "none";
         el.style.opacity = String(Math.min(1, near01 * 1.6));
       }
 
