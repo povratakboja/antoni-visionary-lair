@@ -1,96 +1,60 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-import gallery1 from "@/assets/gallery1.jpeg.asset.json";
-import gallery2 from "@/assets/gallery2.jpeg.asset.json";
-import gallery3 from "@/assets/gallery3.jpeg.asset.json";
+import { useEffect, useMemo, useRef } from "react";
 
-// ──────────────────────────────────────────────────────────────
-// Swap your image URLs here — paste a new URL to replace any image.
-// Add more entries to extend the belt; the animation auto-adapts.
-// ──────────────────────────────────────────────────────────────
-const IMAGE_1 = gallery1.url;
-const IMAGE_2 = gallery2.url;
-const IMAGE_3 = gallery3.url;
+// Placeholder images — replace files in /public/images/ later and swap to /images/xxx.jpg
+const IMAGES = [
+  "https://picsum.photos/seed/abv1/600/600",
+  "https://picsum.photos/seed/abv2/600/600",
+  "https://picsum.photos/seed/abv3/600/600",
+  "https://picsum.photos/seed/abv4/600/600",
+  "https://picsum.photos/seed/abv5/600/600",
+  "https://picsum.photos/seed/abv6/600/600",
+  "https://picsum.photos/seed/abv7/600/600",
+  "https://picsum.photos/seed/abv8/600/600",
+];
 
-const IMAGES = [IMAGE_1, IMAGE_2, IMAGE_3];
-
-// ── Motion config ──────────────────────────────────────────────
-const VISIBLE = 5;              // exactly 5 images visible at once
-const IMG_SIZE_VW = 0.196;      // 30% smaller than previous 0.28
-const SIDE_TILT = 25;           // ±deg at entry / exit
-const PHASE_STEP = 1 / (VISIBLE - 1); // 0.25 — gap between consecutive images
-const CYCLE_SEC = 8;            // seconds for one image to cross entry→exit
+const VISIBLE = 5;
+const IMG_SIZE = 180;
+const GAP = 16;
+const STEP = IMG_SIZE + GAP;
+const ARC_AMPLITUDE = 90; // depth of the U-curve in px (edges sit this far below the peak)
+const MAX_TILT = 12; // max rotation in degrees at the entering/exiting edges
+const SPEED = 30; // px per second
 
 export function ImageGallery({ faded = false }: { faded?: boolean }) {
-  const loop = useMemo(() => IMAGES.slice(), []);
+  const loop = useMemo(() => [...IMAGES, ...IMAGES], []);
   const itemsRef = useRef<(HTMLImageElement | null)[]>([]);
   const rafRef = useRef<number | null>(null);
-  const startRef = useRef<number | null>(null);
+  const offsetRef = useRef(0);
+  const lastTRef = useRef<number | null>(null);
 
-  const [size, setSize] = useState(() => ({
-    vw: typeof window === "undefined" ? 1280 : window.innerWidth,
-    vh: typeof window === "undefined" ? 800 : window.innerHeight,
-  }));
-
-  useEffect(() => {
-    const onResize = () =>
-      setSize({ vw: window.innerWidth, vh: window.innerHeight });
-    window.addEventListener("resize", onResize);
-    return () => window.removeEventListener("resize", onResize);
-  }, []);
-
-  const { vw, vh } = size;
-  const imgSize = vw * IMG_SIZE_VW;
-
-  // 5 positions evenly spaced across viewport width.
-  // t = 0 → left edge, t = 1 → right edge.
-  const entryX = -imgSize / 2;
-  const exitX = vw - imgSize / 2;
-  const centerX = vw / 2 - imgSize / 2;
-  const centerY = vh / 2 - imgSize / 2;
-  const entryY = vh - imgSize * 0.85; // sits low (below center) at edges
-
-  // Cubic bezier control points (symmetric): linear x, arched y.
-  // dx = (exitX-entryX)/3 makes Bx(t) reduce to linear interpolation
-  // → perfectly constant horizontal speed.
-  const dx = (exitX - entryX) / 3;
-  const p0x = entryX,           p0y = entryY;
-  const p1x = entryX + dx,      p1y = (4 * centerY - entryY) / 3; // forces peak = centerY
-  const p2x = exitX - dx,       p2y = p1y;
-  const p3x = exitX,            p3y = entryY;
-
-  // images.length spaced PHASE_STEP apart along the cycle.
-  const cycleLen = Math.max(PHASE_STEP, IMAGES.length * PHASE_STEP);
+  const windowWidth = VISIBLE * IMG_SIZE + (VISIBLE - 1) * GAP;
+  const totalWidth = IMAGES.length * STEP;
+  // Center positions span from 0 to windowWidth; arc peaks at windowWidth/2
+  const arcCenter = windowWidth / 2;
+  const arcHalf = windowWidth / 2;
 
   useEffect(() => {
-    const tick = (now: number) => {
-      if (startRef.current == null) startRef.current = now;
-      const elapsed = (now - startRef.current) / 1000;
-      const globalPhase = elapsed / CYCLE_SEC;
+    const tick = (t: number) => {
+      if (lastTRef.current == null) lastTRef.current = t;
+      const dt = (t - lastTRef.current) / 1000;
+      lastTRef.current = t;
+      offsetRef.current = (offsetRef.current + SPEED * dt) % totalWidth;
 
       itemsRef.current.forEach((el, i) => {
         if (!el) return;
-        let u = (globalPhase - i * PHASE_STEP) % cycleLen;
-        if (u < 0) u += cycleLen;
-
-        // Visible only while traversing entry→exit (u ∈ [0,1]).
-        if (u > 1) {
-          el.style.opacity = "0";
-          return;
-        }
-
-        const t = u;
-        const mt = 1 - t;
-        const b0 = mt * mt * mt;
-        const b1 = 3 * mt * mt * t;
-        const b2 = 3 * mt * t * t;
-        const b3 = t * t * t;
-
-        const x = b0 * p0x + b1 * p1x + b2 * p2x + b3 * p3x;
-        const y = b0 * p0y + b1 * p1y + b2 * p2y + b3 * p3y;
-        const rot = (2 * t - 1) * SIDE_TILT;
-
-        el.style.opacity = "1";
-        el.style.transform = `translate(${x}px, ${y}px) rotate(${rot}deg)`;
+        // raw x position of the image's left edge inside the window
+        let x = i * STEP - offsetRef.current;
+        // wrap into [-STEP, totalWidth - STEP) so duplicates appear seamlessly
+        x = ((x % totalWidth) + totalWidth) % totalWidth;
+        if (x > totalWidth - STEP) x -= totalWidth;
+        const centerX = x + IMG_SIZE / 2;
+        // U-curve: peak (0) at horizontal center, edges dip down to +ARC_AMPLITUDE
+        const norm = (centerX - arcCenter) / arcHalf; // -1..1 across window
+        const clamped = Math.max(-1, Math.min(1, norm));
+        const arcY = ARC_AMPLITUDE * clamped * clamped;
+        // Tilt: lean left at the entering edge, straight at top, lean right at exit
+        const rot = clamped * MAX_TILT;
+        el.style.transform = `translate(${x}px, ${arcY}px) rotate(${rot}deg)`;
       });
 
       rafRef.current = requestAnimationFrame(tick);
@@ -98,33 +62,36 @@ export function ImageGallery({ faded = false }: { faded?: boolean }) {
     rafRef.current = requestAnimationFrame(tick);
     return () => {
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
-      startRef.current = null;
+      lastTRef.current = null;
     };
-  }, [p0x, p0y, p1x, p1y, p2x, p2y, p3x, p3y, cycleLen]);
+  }, [totalWidth, arcCenter, arcHalf]);
 
   return (
     <div
-      className="fixed inset-0 pointer-events-none transition-opacity duration-[2500ms] ease-out"
-      style={{ opacity: faded ? 0 : 1 }}
+      className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 overflow-hidden pointer-events-none transition-opacity duration-[2500ms] ease-out"
+      style={{ width: windowWidth, height: IMG_SIZE + ARC_AMPLITUDE * 2, opacity: faded ? 0 : 1 }}
       aria-hidden
     >
-      {loop.map((src, i) => (
-        <img
-          key={i}
-          ref={(el) => {
-            itemsRef.current[i] = el;
-          }}
-          src={src}
-          alt=""
-          draggable={false}
-          className="absolute top-0 left-0 object-cover select-none"
-          style={{
-            width: imgSize,
-            height: imgSize,
-            willChange: "transform, opacity",
-          }}
-        />
-      ))}
+      <div className="relative w-full h-full">
+        {loop.map((src, i) => (
+          <img
+            key={i}
+            ref={(el) => {
+              itemsRef.current[i] = el;
+            }}
+            src={src}
+            alt=""
+            draggable={false}
+            className="absolute top-1/2 left-0 object-cover select-none"
+            style={{
+              width: IMG_SIZE,
+              height: IMG_SIZE,
+              marginTop: -IMG_SIZE / 2,
+              willChange: "transform",
+            }}
+          />
+        ))}
+      </div>
     </div>
   );
 }
