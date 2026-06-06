@@ -12,14 +12,19 @@ const IMAGE_3 = gallery3.url;
 
 const IMAGES = [IMAGE_1, IMAGE_2, IMAGE_3];
 
-const IMG_SIZE_VW = 0.28; // each image is a square ~28vw on each side
-const GAP_PX = 50; // px gap between images
+const VISIBLE = 3; // images that fit across the viewport at any moment
+const IMG_SIZE_VW = 0.28; // square image side (≤ 1/VISIBLE so gaps fit on screen)
 const ARC_DROP = 180; // px: how much lower side images sit vs center
 const MAX_TILT = 28; // degrees at the edges
-const SPEED = 60; // px per second
+const SPEED = 60; // px per second — constant linear belt speed
 
 export function ImageGallery({ faded = false }: { faded?: boolean }) {
-  const loop = useMemo(() => [...IMAGES, ...IMAGES], []);
+  // Duplicate the source array enough times to safely cover the viewport
+  // plus buffer slots on both sides, regardless of how many images you add.
+  const loop = useMemo(() => {
+    const copies = Math.max(2, Math.ceil((VISIBLE + 2) / IMAGES.length) + 1);
+    return Array.from({ length: copies }).flatMap(() => IMAGES);
+  }, []);
   const itemsRef = useRef<(HTMLImageElement | null)[]>([]);
   const rafRef = useRef<number | null>(null);
   const offsetRef = useRef(0);
@@ -35,8 +40,10 @@ export function ImageGallery({ faded = false }: { faded?: boolean }) {
     return () => window.removeEventListener("resize", onResize);
   }, []);
 
+  // Belt step = viewport / VISIBLE so VISIBLE slots exactly fill 100vw.
+  // Gap is whatever space is left over after the square image.
   const imgSize = vw * IMG_SIZE_VW;
-  const step = imgSize + GAP_PX;
+  const step = vw / VISIBLE;
   const windowWidth = vw;
   const totalWidth = IMAGES.length * step;
   const arcCenter = windowWidth / 2;
