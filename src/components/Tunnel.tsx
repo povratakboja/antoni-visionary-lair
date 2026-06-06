@@ -164,7 +164,7 @@ export function Tunnel({ onComplete }: { onComplete: () => void }) {
                 backgroundImage: `url(${p.src})`,
                 backgroundSize: "cover",
                 backgroundPosition: "center",
-                willChange: "transform, filter, opacity",
+                willChange: "transform, opacity",
               }}
             />
           ))}
