@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 
-// Placeholder images — replace files in /public/images/ later and swap to /images/xxx.jpg
 const IMAGES = [
   "https://picsum.photos/seed/abv1/600/600",
   "https://picsum.photos/seed/abv2/600/600",
@@ -12,10 +11,11 @@ const IMAGES = [
   "https://picsum.photos/seed/abv8/600/600",
 ];
 
-const VISIBLE = 3;
-const GAP = 0;
-const ARC_AMPLITUDE = 90; // depth of the U-curve in px (edges sit this far below the peak)
-const MAX_TILT = 23; // max rotation in degrees at the entering/exiting edges
+const IMG_VW = 0.32; // each image ~32vw wide
+const GAP_VW = 0.02; // gap between images
+const SLOT_VW = IMG_VW + GAP_VW; // belt step in vw
+const ARC_DROP = 180; // px: how much lower side images sit vs center
+const MAX_TILT = 28; // degrees at the edges
 const SPEED = 60; // px per second
 
 export function ImageGallery({ faded = false }: { faded?: boolean }) {
@@ -35,8 +35,8 @@ export function ImageGallery({ faded = false }: { faded?: boolean }) {
     return () => window.removeEventListener("resize", onResize);
   }, []);
 
-  const imgSize = vw / VISIBLE;
-  const step = imgSize + GAP;
+  const imgSize = vw * IMG_VW;
+  const step = vw * SLOT_VW;
   const windowWidth = vw;
   const totalWidth = IMAGES.length * step;
   const arcCenter = windowWidth / 2;
@@ -51,15 +51,13 @@ export function ImageGallery({ faded = false }: { faded?: boolean }) {
 
       itemsRef.current.forEach((el, i) => {
         if (!el) return;
-        // raw x position of the image's left edge inside the window; offset by one
-        // step so the leftmost on-screen image starts as "position 1" (entering).
         let x = i * step - offsetRef.current - step;
         x = ((x % totalWidth) + totalWidth) % totalWidth;
         if (x > totalWidth - step) x -= totalWidth;
         const centerX = x + imgSize / 2;
-        const norm = (centerX - arcCenter) / arcHalf; // -1..1 across window
+        const norm = (centerX - arcCenter) / arcHalf; // -1..1
         const clamped = Math.max(-1.2, Math.min(1.2, norm));
-        const arcY = ARC_AMPLITUDE * clamped * clamped;
+        const arcY = ARC_DROP * clamped * clamped; // 0 at center, +ARC_DROP at edges
         const rot = clamped * MAX_TILT;
         el.style.transform = `translate(${x}px, ${arcY}px) rotate(${rot}deg)`;
       });
@@ -76,7 +74,7 @@ export function ImageGallery({ faded = false }: { faded?: boolean }) {
   return (
     <div
       className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none transition-opacity duration-[2500ms] ease-out"
-      style={{ width: windowWidth, height: imgSize + ARC_AMPLITUDE * 2, opacity: faded ? 0 : 1 }}
+      style={{ width: windowWidth, height: imgSize + ARC_DROP * 2, opacity: faded ? 0 : 1 }}
       aria-hidden
     >
       <div className="relative w-full h-full">
