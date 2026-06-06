@@ -12,7 +12,7 @@ const IMAGES = [
   "https://picsum.photos/seed/abv8/600/600",
 ];
 
-const IMG_SIZE = 180;
+const IMG_SIZE = 234;
 const ARC_AMPLITUDE = 90; // depth of the U-curve in px (edges sit this far below the peak)
 const MAX_TILT = 12; // max rotation in degrees at the entering/exiting edges
 const SPEED = 30; // px per second
