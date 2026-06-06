@@ -6,6 +6,7 @@ import { ImageGallery } from "@/components/ImageGallery";
 import { HurryButton } from "@/components/HurryButton";
 import { FlashOverlay } from "@/components/FlashOverlay";
 import { Tunnel } from "@/components/Tunnel";
+import { StarField } from "@/components/StarField";
 
 export const Route = createFileRoute("/")({
   head: () => ({
