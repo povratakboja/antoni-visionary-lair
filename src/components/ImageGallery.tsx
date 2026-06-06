@@ -63,16 +63,17 @@ export function ImageGallery({
         let x = i * STEP - offsetRef.current;
         x = ((x % totalWidth) + totalWidth) % totalWidth;
         if (x > totalWidth - STEP) x -= totalWidth;
-        // shift so x=0 means fully off-screen left (image right edge at viewport left edge)
-        const drawX = x - IMG_SIZE;
+        // mirror horizontally so images travel right → left
+        const drawX = vw + IMG_SIZE - x;
         const centerX = x + IMG_SIZE / 2;
         const norm = (centerX - arcCenter) / arcHalf; // -1..1 across travel
         const clamped = Math.max(-1, Math.min(1, norm));
-        // smoothstep on |t| → zero slope at peak AND at edges, rounding the corners
+        // gentler wave — shorter plateau than smoothstep, still smooth at peak
         const u = Math.abs(clamped);
-        const eased = u * u * (3 - 2 * u);
+        const eased = Math.pow(u, 1.6);
         const arcY = ARC_AMPLITUDE * eased;
-        const rot = Math.sign(clamped) * MAX_TILT * eased;
+        // tilt flipped because direction reversed (lean into entry from right, out to left)
+        const rot = -Math.sign(clamped) * MAX_TILT * eased;
         el.style.transform = `translate(${drawX}px, ${arcY}px) rotate(${rot}deg)`;
       });
 
