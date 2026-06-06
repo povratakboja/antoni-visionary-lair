@@ -37,6 +37,7 @@ export function ImageGallery({ faded = false }: { faded?: boolean }) {
 
   const imgSize = vw * IMG_SIZE_VW;
   const step = imgSize + GAP_PX;
+  const windowWidth = vw;
   const totalWidth = IMAGES.length * step;
   const arcCenter = windowWidth / 2;
   const arcHalf = windowWidth / 2;
