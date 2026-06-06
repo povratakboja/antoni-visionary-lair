@@ -19,13 +19,13 @@ const SPEED = 30; // px per second
 const INITIAL_DELAY_S = 1.5; // empty screen pause before the first image enters from the right
 
 export function ImageGallery({ faded = false, active = true }: { faded?: boolean; active?: boolean }) {
-  // Triple the loop so the belt has a deep parking band: every image starts off-screen
-  // and marches into view one at a time at the same cadence as the steady-state conveyor.
-  const loop = useMemo(() => [...IMAGES, ...IMAGES, ...IMAGES], []);
+  // One pool slot per image. Each slot has its own staggered spawn time and
+  // recycles after the previous cycle finishes — so the conveyor is continuous
+  // in steady state, while at the start every image enters from the right one by one.
+  const loop = useMemo(() => IMAGES, []);
   const itemsRef = useRef<(HTMLImageElement | null)[]>([]);
   const rafRef = useRef<number | null>(null);
-  const offsetRef = useRef<number | null>(null);
-  const lastTRef = useRef<number | null>(null);
+  const startMsRef = useRef<number | null>(null);
 
   const [vw, setVw] = useState(() =>
     typeof window === "undefined" ? 1280 : window.innerWidth,
@@ -37,37 +37,41 @@ export function ImageGallery({ faded = false, active = true }: { faded?: boolean
     return () => window.removeEventListener("resize", onResize);
   }, []);
 
-  // Visible travel range: from fully off-screen right to fully off-screen left.
+  // Visible travel range: from fully off-screen right (drawX = vw)
+  // to fully off-screen left (drawX = -IMG_SIZE). Distance = vw + IMG_SIZE.
+  // Keep STEP at travelWidth/IMAGES.length so visual density / speed match before.
   const travelWidth = vw + IMG_SIZE * 2;
-  // Per-image spacing preserved so spawn cadence / pause timing stays identical.
   const STEP = travelWidth / IMAGES.length;
-  // Belt is long enough that all images can wait off-screen-left before their turn.
-  const totalWidth = loop.length * STEP;
+  const travelDistance = vw + IMG_SIZE; // px an image actually crosses on screen
+  const travelTime = travelDistance / SPEED; // seconds an image is alive on screen
+  const slotPeriod = (IMAGES.length * STEP) / SPEED; // seconds between an image's re-entries
 
   useEffect(() => {
     if (!active) return;
-    // Seed the belt so image 0 is INITIAL_DELAY_S away from the right-edge entry point,
-    // and every other image is one STEP further back in the parking band (off-screen left).
-    offsetRef.current = totalWidth - INITIAL_DELAY_S * SPEED;
-    lastTRef.current = null;
+    startMsRef.current = null;
 
-    const tick = (t: number) => {
-      if (lastTRef.current == null) lastTRef.current = t;
-      const dt = (t - lastTRef.current) / 1000;
-      lastTRef.current = t;
-      const off = ((offsetRef.current ?? 0) + SPEED * dt) % totalWidth;
-      offsetRef.current = off;
+    const tick = (now: number) => {
+      if (startMsRef.current == null) startMsRef.current = now;
+      const elapsed = (now - startMsRef.current) / 1000;
 
       itemsRef.current.forEach((el, i) => {
         if (!el) return;
-        // Reverse indexing: image i=0 enters first, i=1 enters STEP/SPEED later, etc.
-        let x = off - i * STEP;
-        x = ((x % totalWidth) + totalWidth) % totalWidth;
-        // drawX = vw  → image right edge just off the right of the viewport (about to enter)
-        // drawX = -IMG_SIZE → image just exited off the left edge.
-        const drawX = vw - x;
-        const visible = drawX > -IMG_SIZE * 1.2 && drawX < vw + IMG_SIZE * 0.2;
-        el.style.opacity = visible ? "1" : "0";
+        // Slot i is scheduled to first appear at this absolute time:
+        const firstSpawn = INITIAL_DELAY_S + i * (STEP / SPEED);
+        const sinceFirst = elapsed - firstSpawn;
+        if (sinceFirst < 0) {
+          // Hasn't entered yet — keep it fully off-screen and invisible.
+          el.style.opacity = "0";
+          return;
+        }
+        // After the first entry, the same slot recycles every slotPeriod.
+        const phase = sinceFirst % slotPeriod;
+        if (phase > travelTime) {
+          // Between exit and next re-entry — parked off-screen.
+          el.style.opacity = "0";
+          return;
+        }
+        const drawX = vw - phase * SPEED;
         const centerX = drawX + IMG_SIZE / 2;
         const norm = (centerX - vw / 2) / (vw / 2 + IMG_SIZE);
         const clamped = Math.max(-1, Math.min(1, norm));
@@ -75,6 +79,7 @@ export function ImageGallery({ faded = false, active = true }: { faded?: boolean
         // Lean into the direction of travel: tilt left while entering on the right,
         // straight at the peak, tilt right while exiting on the left.
         const rot = -clamped * MAX_TILT;
+        el.style.opacity = "1";
         el.style.transform = `translate(${drawX}px, ${arcY}px) rotate(${rot}deg)`;
       });
 
@@ -84,9 +89,9 @@ export function ImageGallery({ faded = false, active = true }: { faded?: boolean
     return () => {
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
       rafRef.current = null;
-      lastTRef.current = null;
+      startMsRef.current = null;
     };
-  }, [totalWidth, STEP, vw, active]);
+  }, [STEP, vw, active, travelTime, slotPeriod]);
 
   return (
     <div
