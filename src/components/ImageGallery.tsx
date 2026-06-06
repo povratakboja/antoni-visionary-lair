@@ -109,7 +109,9 @@ export function ImageGallery({ faded = false, active = true }: { faded?: boolean
               width: IMG_SIZE,
               height: IMG_SIZE,
               marginTop: -IMG_SIZE / 2,
-              willChange: "transform",
+              opacity: 0,
+              transform: `translate(${-IMG_SIZE * 2}px, 0)`,
+              willChange: "transform, opacity",
             }}
           />
         ))}
