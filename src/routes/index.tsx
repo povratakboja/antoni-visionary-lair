@@ -26,6 +26,7 @@ const QUOTES: Record<number, string> = {
 
 function Index() {
   const [isLoading, setIsLoading] = useState(true);
+  const [heroDone, setHeroDone] = useState(false);
   const [quote, setQuote] = useState<{ text: string; index: 1 | 2 } | null>(null);
   const [deepSpace, setDeepSpace] = useState(false);
   const [galleryFaded, setGalleryFaded] = useState(false);
@@ -34,7 +35,12 @@ function Index() {
   const [showTunnel, setShowTunnel] = useState(false);
   const navigate = useNavigate();
 
-  const handleLoadingComplete = useCallback(() => setIsLoading(false), []);
+  const handleLoadingComplete = useCallback(() => {
+    // Hero intro fully finished (loading screen exit animation done) —
+    // only now is it safe to start the gallery belt.
+    setIsLoading(false);
+    setHeroDone(true);
+  }, []);
 
   const triggerFlash = useCallback((intensity: number) => {
     setFlashIntensity(intensity);
@@ -105,7 +111,7 @@ function Index() {
         />
 
         <Navigation />
-        <ImageGallery faded={galleryFaded} />
+        <ImageGallery faded={galleryFaded} active={heroDone} />
 
         {/* Button — centered below the gallery strip */}
         <div className="absolute left-1/2 top-1/2 -translate-x-1/2 translate-y-[180px] flex flex-col items-center text-center">
