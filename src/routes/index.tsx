@@ -112,7 +112,7 @@ function Index() {
         />
 
         <Navigation />
-        <ImageGallery faded={galleryFaded} />
+        <ImageGallery faded={galleryFaded} start={galleryStart} />
 
         {/* Button — centered below the gallery strip */}
         <div className="absolute left-1/2 top-1/2 -translate-x-1/2 translate-y-[180px] flex flex-col items-center text-center">
