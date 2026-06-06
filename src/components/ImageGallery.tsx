@@ -16,14 +16,15 @@ const IMG_SIZE = 180;
 const ARC_AMPLITUDE = 90; // depth of the U-curve in px (edges sit this far below the peak)
 const MAX_TILT = 12; // max rotation in degrees at the entering/exiting edges
 const SPEED = 30; // px per second
+const INITIAL_DELAY_S = 1.5; // empty screen pause before the first image enters from the right
 
 export function ImageGallery({ faded = false, active = true }: { faded?: boolean; active?: boolean }) {
-  // Doubled loop so there is always an off-screen reservoir on both sides —
-  // every image physically enters/exits, none pop into existence mid-screen.
-  const loop = useMemo(() => [...IMAGES, ...IMAGES], []);
+  // Triple the loop so the belt has a deep parking band: every image starts off-screen
+  // and marches into view one at a time at the same cadence as the steady-state conveyor.
+  const loop = useMemo(() => [...IMAGES, ...IMAGES, ...IMAGES], []);
   const itemsRef = useRef<(HTMLImageElement | null)[]>([]);
   const rafRef = useRef<number | null>(null);
-  const offsetRef = useRef(0);
+  const offsetRef = useRef<number | null>(null);
   const lastTRef = useRef<number | null>(null);
 
   const [vw, setVw] = useState(() =>
@@ -40,39 +41,39 @@ export function ImageGallery({ faded = false, active = true }: { faded?: boolean
   const travelWidth = vw + IMG_SIZE * 2;
   // Per-image spacing preserved so spawn cadence / pause timing stays identical.
   const STEP = travelWidth / IMAGES.length;
-  // Full belt length covers the visible range twice so half the images are always
-  // parked off-screen waiting to enter — no abrupt wrap inside the viewport.
+  // Belt is long enough that all images can wait off-screen-left before their turn.
   const totalWidth = loop.length * STEP;
-  const arcCenter = travelWidth / 2;
-  const arcHalf = travelWidth / 2;
 
   useEffect(() => {
     if (!active) return;
+    // Seed the belt so image 0 is INITIAL_DELAY_S away from the right-edge entry point,
+    // and every other image is one STEP further back in the parking band (off-screen left).
+    offsetRef.current = totalWidth - INITIAL_DELAY_S * SPEED;
+    lastTRef.current = null;
+
     const tick = (t: number) => {
       if (lastTRef.current == null) lastTRef.current = t;
       const dt = (t - lastTRef.current) / 1000;
       lastTRef.current = t;
-      offsetRef.current = (offsetRef.current + SPEED * dt) % totalWidth;
+      const off = ((offsetRef.current ?? 0) + SPEED * dt) % totalWidth;
+      offsetRef.current = off;
 
       itemsRef.current.forEach((el, i) => {
         if (!el) return;
-        // Position images along the belt. Belt is twice the visible range,
-        // so each image spends half its cycle off-screen (no pop-in).
-        let x = i * STEP - offsetRef.current;
+        // Reverse indexing: image i=0 enters first, i=1 enters STEP/SPEED later, etc.
+        let x = off - i * STEP;
         x = ((x % totalWidth) + totalWidth) % totalWidth;
-        // Map belt position [0, totalWidth) into a drawing range that stretches
-        // from fully off-screen right (drawX = vw) down to fully off-screen left
-        // (drawX = -IMG_SIZE). Beyond the visible band the image stays hidden.
+        // drawX = vw  → image right edge just off the right of the viewport (about to enter)
+        // drawX = -IMG_SIZE → image just exited off the left edge.
         const drawX = vw - x;
-        // Hide images outside the visible band entirely so nothing flickers.
         const visible = drawX > -IMG_SIZE * 1.2 && drawX < vw + IMG_SIZE * 0.2;
         el.style.opacity = visible ? "1" : "0";
         const centerX = drawX + IMG_SIZE / 2;
         const norm = (centerX - vw / 2) / (vw / 2 + IMG_SIZE);
         const clamped = Math.max(-1, Math.min(1, norm));
         const arcY = ARC_AMPLITUDE * clamped * clamped;
-        // Tilt: leaning into the direction of travel — entering from bottom-right
-        // tilts left, peak straight, exiting bottom-left tilts right.
+        // Lean into the direction of travel: tilt left while entering on the right,
+        // straight at the peak, tilt right while exiting on the left.
         const rot = -clamped * MAX_TILT;
         el.style.transform = `translate(${drawX}px, ${arcY}px) rotate(${rot}deg)`;
       });
@@ -85,7 +86,7 @@ export function ImageGallery({ faded = false, active = true }: { faded?: boolean
       rafRef.current = null;
       lastTRef.current = null;
     };
-  }, [totalWidth, arcCenter, arcHalf, STEP, vw, active]);
+  }, [totalWidth, STEP, vw, active]);
 
   return (
     <div
