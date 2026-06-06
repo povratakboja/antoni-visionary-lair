@@ -32,6 +32,7 @@ function Index() {
   const [galleryFaded, setGalleryFaded] = useState(false);
   const [flashKey, setFlashKey] = useState(0);
   const [flashIntensity, setFlashIntensity] = useState(0);
+  const [flashMultiplier, setFlashMultiplier] = useState(1);
   const [showTunnel, setShowTunnel] = useState(false);
   const navigate = useNavigate();
 
@@ -42,23 +43,24 @@ function Index() {
     setHeroDone(true);
   }, []);
 
-  const triggerFlash = useCallback((intensity: number) => {
+  const triggerFlash = useCallback((intensity: number, multiplier = 1) => {
     setFlashIntensity(intensity);
+    setFlashMultiplier(multiplier);
     setFlashKey((k) => k + 1);
   }, []);
 
-  const handleHoverFlash = useCallback(() => triggerFlash(0.18), [triggerFlash]);
+  const handleHoverFlash = useCallback(() => triggerFlash(0.18, 1), [triggerFlash]);
 
   const handleClick = useCallback(
     (n: number) => {
       if (n === 1) {
-        triggerFlash(0.45);
+        triggerFlash(0.45, 1.25);
         setQuote({ text: QUOTES[1], index: 1 });
       } else if (n === 2) {
-        triggerFlash(0.7);
+        triggerFlash(0.7, 1.5);
         setQuote({ text: QUOTES[2], index: 2 });
       } else if (n >= 3) {
-        triggerFlash(0.95);
+        triggerFlash(0.95, 1.75);
         setDeepSpace(true);
         setQuote(null);
         // begin gallery fade alongside background transition
@@ -148,7 +150,7 @@ function Index() {
           </div>
         )}
 
-        <FlashOverlay flashKey={flashKey} intensity={flashIntensity} />
+        <FlashOverlay flashKey={flashKey} intensity={flashIntensity} multiplier={flashMultiplier} />
       </div>
       {showTunnel && <Tunnel onComplete={handleTunnelComplete} />}
     </>
