@@ -1,19 +1,19 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import gallery1 from "@/assets/gallery1.jpeg.asset.json";
+import gallery2 from "@/assets/gallery2.jpeg.asset.json";
+import gallery3 from "@/assets/gallery3.jpeg.asset.json";
 
-const IMAGES = [
-  "https://picsum.photos/seed/abv1/600/600",
-  "https://picsum.photos/seed/abv2/600/600",
-  "https://picsum.photos/seed/abv3/600/600",
-  "https://picsum.photos/seed/abv4/600/600",
-  "https://picsum.photos/seed/abv5/600/600",
-  "https://picsum.photos/seed/abv6/600/600",
-  "https://picsum.photos/seed/abv7/600/600",
-  "https://picsum.photos/seed/abv8/600/600",
-];
+// ──────────────────────────────────────────────────────────────
+// Swap your image URLs here — paste a new URL to replace any image.
+// ──────────────────────────────────────────────────────────────
+const IMAGE_1 = gallery1.url;
+const IMAGE_2 = gallery2.url;
+const IMAGE_3 = gallery3.url;
 
-const IMG_VW = 0.32; // each image ~32vw wide
-const GAP_VW = 0.02; // gap between images
-const SLOT_VW = IMG_VW + GAP_VW; // belt step in vw
+const IMAGES = [IMAGE_1, IMAGE_2, IMAGE_3];
+
+const IMG_SIZE_VW = 0.28; // each image is a square ~28vw on each side
+const GAP_PX = 50; // px gap between images
 const ARC_DROP = 180; // px: how much lower side images sit vs center
 const MAX_TILT = 28; // degrees at the edges
 const SPEED = 60; // px per second
@@ -35,8 +35,8 @@ export function ImageGallery({ faded = false }: { faded?: boolean }) {
     return () => window.removeEventListener("resize", onResize);
   }, []);
 
-  const imgSize = vw * IMG_VW;
-  const step = vw * SLOT_VW;
+  const imgSize = vw * IMG_SIZE_VW;
+  const step = imgSize + GAP_PX;
   const windowWidth = vw;
   const totalWidth = IMAGES.length * step;
   const arcCenter = windowWidth / 2;
