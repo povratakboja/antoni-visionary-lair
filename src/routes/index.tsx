@@ -96,15 +96,15 @@ function Index() {
               "radial-gradient(circle at 50% 50%, #050814 0%, #02030a 70%, #000000 100%)",
           }}
         />
-        {/* Stars layer */}
+        {/* Stars layer (canvas) */}
         <div
           aria-hidden
           className="pointer-events-none absolute inset-0 transition-opacity duration-[4000ms] ease-in-out"
-          style={{
-            opacity: deepSpace ? 1 : 0,
-            backgroundImage: STARS_BG,
-          }}
-        />
+          style={{ opacity: deepSpace ? 1 : 0 }}
+        >
+          <StarField />
+        </div>
+
 
         <Navigation />
         <ImageGallery faded={galleryFaded} active={heroDone} />
