@@ -13,15 +13,14 @@ const IMAGES = [
   "https://picsum.photos/seed/abv8/600/600",
 ];
 
-const N_PARTICLES = 160;
-const FAR_Z = -60000;
+const N_PARTICLES = 70;
+// Deep enough that perspective=900 makes far particles ~scale 0.02 (tiny dots).
+const FAR_Z = -44000;
 const NEAR_Z = 700;
 const SPAN = NEAR_Z - FAR_Z;
-const RAMP_MS = 12500; // very-slow → hyperspace
-const HOLD_MS = 1500;
+const RAMP_MS = 5500; // exponential ramp-up
+const HOLD_MS = 5500; // peak hyperspace hold
 const RUSH_MS = RAMP_MS + HOLD_MS;
-// Time between each doubling of the active image count: 1 → 2 → 4 → 8 → ...
-const DOUBLE_STEP_MS = 1450;
 
 type Particle = {
   src: string;
@@ -30,35 +29,28 @@ type Particle = {
   z: number;
   rot: number;
   size: number;
-  delay: number; // ms before this particle becomes visible
 };
 
-function makeParticle(delay: number): Particle {
+function spawn(initial = false): Particle {
   const ang = Math.random() * Math.PI * 2;
-  const r = 60 + Math.random() * 1100;
+  const r = 100 + Math.random() * 1200;
+  // Bias initial particles toward the far plane so they appear as tiny dots.
+  const initialZ = FAR_Z + Math.pow(Math.random(), 4) * SPAN;
   return {
     src: IMAGES[Math.floor(Math.random() * IMAGES.length)],
     x: Math.cos(ang) * r,
     y: Math.sin(ang) * r,
-    z: FAR_Z + Math.random() * 400,
+    z: initial ? initialZ : FAR_Z + Math.random() * 600,
     rot: (Math.random() - 0.5) * 40,
-    size: 200 + Math.random() * 160,
-    delay,
+    size: 180 + Math.random() * 140,
   };
 }
 
 type Phase = "rushing" | "fadeBlack" | "holdText" | "tvOff" | "done";
 
 export function Tunnel({ onComplete }: { onComplete: () => void }) {
-  // Doubling schedule: particle i activates at step ceil(log2(i+1)).
-  // i=0 → step 0 (t=0), i=1 → step 1, i=2..3 → step 2, i=4..7 → step 3, etc.
   const partsRef = useRef<Particle[]>(
-    Array.from({ length: N_PARTICLES }, (_, i) => {
-      const step = i === 0 ? 0 : Math.ceil(Math.log2(i + 1));
-      const jitter = Math.random() * DOUBLE_STEP_MS * 0.4;
-      const delay = Math.min(RAMP_MS * 0.95, step * DOUBLE_STEP_MS + jitter);
-      return makeParticle(delay);
-    }),
+    Array.from({ length: N_PARTICLES }, () => spawn(true)),
   );
   const elsRef = useRef<(HTMLDivElement | null)[]>([]);
   const rafRef = useRef<number | null>(null);
@@ -66,14 +58,16 @@ export function Tunnel({ onComplete }: { onComplete: () => void }) {
   const lastTRef = useRef<number | null>(null);
   const [phase, setPhase] = useState<Phase>("rushing");
 
+  // Lock scroll + interaction
   useEffect(() => {
-    const prev = document.body.style.overflow;
+    const prevOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     return () => {
-      document.body.style.overflow = prev;
+      document.body.style.overflow = prevOverflow;
     };
   }, []);
 
+  // RAF loop
   useEffect(() => {
     const tick = (t: number) => {
       if (startRef.current == null) startRef.current = t;
@@ -82,54 +76,39 @@ export function Tunnel({ onComplete }: { onComplete: () => void }) {
       const dt = Math.min((t - lastTRef.current) / 1000, 0.05);
       lastTRef.current = t;
 
-      // Very steep ramp: barely moves for ~5s, then hyperspace.
+      // Exponential acceleration: almost still → moderate → hyperspace.
       const rampT = Math.min(elapsed / RAMP_MS, 1);
-      const eased = Math.pow(rampT, 5);
-      const speed = 8 + eased * 140000;
+      const eased = Math.pow(rampT, 4); // aggressive exponential curve
+      const speed = 40 + eased * 60000; // px/s along z
 
       const parts = partsRef.current;
       for (let i = 0; i < parts.length; i++) {
         const p = parts[i];
-        const el = elsRef.current[i];
-        if (!el) continue;
-
-        // Particle not yet spawned: invisible, parked at far plane.
-        if (elapsed < p.delay) {
-          el.style.opacity = "0";
-          el.style.transform = `translate3d(${p.x}px, ${p.y}px, ${FAR_Z}px) scale(0.005)`;
-          el.style.filter = "none";
-          continue;
-        }
-
         p.z += speed * dt;
         if (p.z > NEAR_Z) {
-          const fresh = makeParticle(0);
+          const fresh = spawn(false);
           p.src = fresh.src;
           p.x = fresh.x;
           p.y = fresh.y;
-          p.z = FAR_Z + Math.random() * 200;
+          p.z = fresh.z;
           p.rot = fresh.rot;
           p.size = fresh.size;
         }
-
-        const near01 = (p.z - FAR_Z) / SPAN; // 0 far → 1 near
-        // Radial clarity: center passes are sharp & fully opaque,
-        // periphery fades to ~0.15 with stronger blur.
+        const el = elsRef.current[i];
+        if (!el) continue;
         const lateral = Math.hypot(p.x, p.y);
-        const centerness = Math.max(0, 1 - lateral / 700); // 1 center → 0 edge
-        const baseOpacity = 0.15 + centerness * 0.85;
-        const depthFade = Math.min(1, near01 * 2.4) * Math.min(1, (1 - near01) * 6 + 0.3);
-        const opacity = Math.min(1, baseOpacity * depthFade);
-
-        const lateralBlur = (1 - centerness) * (3 + eased * 22);
-        const speedBlur = Math.pow(eased, 1.6) * 14 * (0.2 + near01);
-        const blur = Math.min(48, centerness > 0.92 ? 0 : lateralBlur + speedBlur);
-
-        const stretchY = 1 + Math.pow(eased, 2) * near01 * 5;
-
-        el.style.opacity = String(opacity);
+        const near01 = (p.z - FAR_Z) / SPAN; // 0 far, 1 near
+        // Lateral blur (periphery) scaled by global speed.
+        const lateralBlur =
+          Math.max(0, (lateral - 160) / 50) * (0.4 + near01) * (0.4 + eased * 4);
+        // Global hyperspace blur grows with speed and is strongest near the camera.
+        const speedBlur = Math.pow(eased, 1.5) * 22 * (0.25 + near01);
+        const blurAmt = Math.min(48, lateralBlur + speedBlur);
+        // Vertical stretch grows with speed → light-streak feel near the camera.
+        const stretchY = 1 + Math.pow(eased, 2) * near01 * 6;
         el.style.transform = `translate3d(${p.x}px, ${p.y}px, ${p.z}px) scaleY(${stretchY}) rotate(${p.rot}deg)`;
-        el.style.filter = blur > 0.3 ? `blur(${blur}px)` : "none";
+        el.style.filter = blurAmt > 0.3 ? `blur(${blurAmt}px)` : "none";
+        el.style.opacity = String(Math.min(1, near01 * 1.6));
       }
 
       if (elapsed < RUSH_MS) {
@@ -144,7 +123,7 @@ export function Tunnel({ onComplete }: { onComplete: () => void }) {
     };
   }, []);
 
-
+  // Ending phase machine
   useEffect(() => {
     if (phase === "fadeBlack") {
       const t = window.setTimeout(() => setPhase("holdText"), 900);
@@ -169,19 +148,14 @@ export function Tunnel({ onComplete }: { onComplete: () => void }) {
       style={{ pointerEvents: "all", cursor: "none" }}
       aria-hidden
     >
+      {/* Tunnel scene */}
       <div
         className="absolute inset-0"
-        style={{ perspective: "900px", perspectiveOrigin: "50% 100%" }}
+        style={{ perspective: "900px", perspectiveOrigin: "50% 50%" }}
       >
-        {/* Vanishing point anchored to center-bottom of the screen. */}
         <div
-          className="absolute left-1/2"
-          style={{
-            top: "100%",
-            transformStyle: "preserve-3d",
-            width: 0,
-            height: 0,
-          }}
+          className="absolute left-1/2 top-1/2"
+          style={{ transformStyle: "preserve-3d", width: 0, height: 0 }}
         >
           {partsRef.current.map((p, i) => (
             <div
@@ -199,16 +173,13 @@ export function Tunnel({ onComplete }: { onComplete: () => void }) {
                 backgroundSize: "cover",
                 backgroundPosition: "center",
                 willChange: "transform, filter, opacity",
-                // Initialize tiny and invisible — no first-frame pop-in.
-                opacity: 0,
-                transform: `translate3d(${p.x}px, ${p.y}px, ${FAR_Z}px) scale(0.005)`,
               }}
             />
           ))}
         </div>
       </div>
 
-
+      {/* Black fade-in once rushing ends */}
       <motion.div
         className="absolute inset-0 bg-black"
         initial={{ opacity: 0 }}
@@ -216,6 +187,7 @@ export function Tunnel({ onComplete }: { onComplete: () => void }) {
         transition={{ duration: 0.8, ease: "easeInOut" }}
       />
 
+      {/* Text layer + CRT TV-off collapse */}
       <motion.div
         className="absolute inset-0 flex items-center justify-center bg-black"
         style={{ transformOrigin: "50% 50%" }}
