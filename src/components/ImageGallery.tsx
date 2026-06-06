@@ -17,13 +17,7 @@ const ARC_AMPLITUDE = 90; // depth of the U-curve in px (edges sit this far belo
 const MAX_TILT = 12; // max rotation in degrees at the entering/exiting edges
 const SPEED = 30; // px per second
 
-export function ImageGallery({
-  faded = false,
-  start = true,
-}: {
-  faded?: boolean;
-  start?: boolean;
-}) {
+export function ImageGallery({ faded = false }: { faded?: boolean }) {
   const loop = useMemo(() => [...IMAGES, ...IMAGES], []);
   const itemsRef = useRef<(HTMLImageElement | null)[]>([]);
   const rafRef = useRef<number | null>(null);
@@ -50,7 +44,6 @@ export function ImageGallery({
   const arcHalf = travelWidth / 2;
 
   useEffect(() => {
-    if (!start) return;
     const tick = (t: number) => {
       if (lastTRef.current == null) lastTRef.current = t;
       const dt = (t - lastTRef.current) / 1000;
@@ -63,17 +56,13 @@ export function ImageGallery({
         let x = i * STEP - offsetRef.current;
         x = ((x % totalWidth) + totalWidth) % totalWidth;
         if (x > totalWidth - STEP) x -= totalWidth;
-        // mirror horizontally so images travel right → left
-        const drawX = vw + IMG_SIZE - x;
+        // shift so x=0 means fully off-screen left (image right edge at viewport left edge)
+        const drawX = x - IMG_SIZE;
         const centerX = x + IMG_SIZE / 2;
         const norm = (centerX - arcCenter) / arcHalf; // -1..1 across travel
         const clamped = Math.max(-1, Math.min(1, norm));
-        // gentler wave — shorter plateau than smoothstep, still smooth at peak
-        const u = Math.abs(clamped);
-        const eased = Math.pow(u, 1.6);
-        const arcY = ARC_AMPLITUDE * eased;
-        // tilt flipped because direction reversed (lean into entry from right, out to left)
-        const rot = -Math.sign(clamped) * MAX_TILT * eased;
+        const arcY = ARC_AMPLITUDE * clamped * clamped;
+        const rot = clamped * MAX_TILT;
         el.style.transform = `translate(${drawX}px, ${arcY}px) rotate(${rot}deg)`;
       });
 
@@ -84,7 +73,7 @@ export function ImageGallery({
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
       lastTRef.current = null;
     };
-  }, [totalWidth, arcCenter, arcHalf, STEP, start]);
+  }, [totalWidth, arcCenter, arcHalf, STEP]);
 
   return (
     <div
