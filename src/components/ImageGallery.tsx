@@ -17,7 +17,9 @@ const ARC_AMPLITUDE = 90; // depth of the U-curve in px (edges sit this far belo
 const MAX_TILT = 12; // max rotation in degrees at the entering/exiting edges
 const SPEED = 30; // px per second
 
-export function ImageGallery({ faded = false }: { faded?: boolean }) {
+export function ImageGallery({ faded = false, active = true }: { faded?: boolean; active?: boolean }) {
+  // Doubled loop so there is always an off-screen reservoir on both sides —
+  // every image physically enters/exits, none pop into existence mid-screen.
   const loop = useMemo(() => [...IMAGES, ...IMAGES], []);
   const itemsRef = useRef<(HTMLImageElement | null)[]>([]);
   const rafRef = useRef<number | null>(null);
@@ -34,16 +36,18 @@ export function ImageGallery({ faded = false }: { faded?: boolean }) {
     return () => window.removeEventListener("resize", onResize);
   }, []);
 
-  // Travel range spans the full viewport plus an off-screen buffer on each side
-  // so images enter fully hidden from the left and exit fully hidden to the right.
+  // Visible travel range: from fully off-screen right to fully off-screen left.
   const travelWidth = vw + IMG_SIZE * 2;
-  // Keep per-image spacing identical to before so spawn timing / pause cadence are unchanged.
+  // Per-image spacing preserved so spawn cadence / pause timing stays identical.
   const STEP = travelWidth / IMAGES.length;
-  const totalWidth = IMAGES.length * STEP;
+  // Full belt length covers the visible range twice so half the images are always
+  // parked off-screen waiting to enter — no abrupt wrap inside the viewport.
+  const totalWidth = loop.length * STEP;
   const arcCenter = travelWidth / 2;
   const arcHalf = travelWidth / 2;
 
   useEffect(() => {
+    if (!active) return;
     const tick = (t: number) => {
       if (lastTRef.current == null) lastTRef.current = t;
       const dt = (t - lastTRef.current) / 1000;
@@ -52,17 +56,24 @@ export function ImageGallery({ faded = false }: { faded?: boolean }) {
 
       itemsRef.current.forEach((el, i) => {
         if (!el) return;
-        // raw x position of the image's left edge inside the travel range
+        // Position images along the belt. Belt is twice the visible range,
+        // so each image spends half its cycle off-screen (no pop-in).
         let x = i * STEP - offsetRef.current;
         x = ((x % totalWidth) + totalWidth) % totalWidth;
-        if (x > totalWidth - STEP) x -= totalWidth;
-        // shift so x=0 means fully off-screen left (image right edge at viewport left edge)
-        const drawX = x - IMG_SIZE;
-        const centerX = x + IMG_SIZE / 2;
-        const norm = (centerX - arcCenter) / arcHalf; // -1..1 across travel
+        // Map belt position [0, totalWidth) into a drawing range that stretches
+        // from fully off-screen right (drawX = vw) down to fully off-screen left
+        // (drawX = -IMG_SIZE). Beyond the visible band the image stays hidden.
+        const drawX = vw - x;
+        // Hide images outside the visible band entirely so nothing flickers.
+        const visible = drawX > -IMG_SIZE * 1.2 && drawX < vw + IMG_SIZE * 0.2;
+        el.style.opacity = visible ? "1" : "0";
+        const centerX = drawX + IMG_SIZE / 2;
+        const norm = (centerX - vw / 2) / (vw / 2 + IMG_SIZE);
         const clamped = Math.max(-1, Math.min(1, norm));
         const arcY = ARC_AMPLITUDE * clamped * clamped;
-        const rot = clamped * MAX_TILT;
+        // Tilt: leaning into the direction of travel — entering from bottom-right
+        // tilts left, peak straight, exiting bottom-left tilts right.
+        const rot = -clamped * MAX_TILT;
         el.style.transform = `translate(${drawX}px, ${arcY}px) rotate(${rot}deg)`;
       });
 
@@ -71,9 +82,10 @@ export function ImageGallery({ faded = false }: { faded?: boolean }) {
     rafRef.current = requestAnimationFrame(tick);
     return () => {
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
+      rafRef.current = null;
       lastTRef.current = null;
     };
-  }, [totalWidth, arcCenter, arcHalf, STEP]);
+  }, [totalWidth, arcCenter, arcHalf, STEP, vw, active]);
 
   return (
     <div
