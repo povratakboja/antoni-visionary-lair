@@ -19,7 +19,12 @@ const MAX_TILT = 28; // degrees at the edges
 const SPEED = 60; // px per second — constant linear belt speed
 
 export function ImageGallery({ faded = false }: { faded?: boolean }) {
-  const loop = useMemo(() => [...IMAGES, ...IMAGES], []);
+  // Duplicate the source array enough times to safely cover the viewport
+  // plus buffer slots on both sides, regardless of how many images you add.
+  const loop = useMemo(() => {
+    const copies = Math.max(2, Math.ceil((VISIBLE + 2) / IMAGES.length) + 1);
+    return Array.from({ length: copies }).flatMap(() => IMAGES);
+  }, []);
   const itemsRef = useRef<(HTMLImageElement | null)[]>([]);
   const rafRef = useRef<number | null>(null);
   const offsetRef = useRef(0);
