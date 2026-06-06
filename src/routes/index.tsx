@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { LoadingScreen } from "@/components/LoadingScreen";
 import { Navigation } from "@/components/Navigation";
 import { ImageGallery } from "@/components/ImageGallery";
@@ -26,6 +26,7 @@ const QUOTES: Record<number, string> = {
 
 function Index() {
   const [isLoading, setIsLoading] = useState(true);
+  const [galleryStart, setGalleryStart] = useState(false);
   const [quote, setQuote] = useState<{ text: string; index: 1 | 2 } | null>(null);
   const [deepSpace, setDeepSpace] = useState(false);
   const [galleryFaded, setGalleryFaded] = useState(false);
@@ -35,6 +36,12 @@ function Index() {
   const navigate = useNavigate();
 
   const handleLoadingComplete = useCallback(() => setIsLoading(false), []);
+
+  useEffect(() => {
+    if (isLoading) return;
+    const id = window.setTimeout(() => setGalleryStart(true), 1000);
+    return () => window.clearTimeout(id);
+  }, [isLoading]);
 
   const triggerFlash = useCallback((intensity: number) => {
     setFlashIntensity(intensity);
@@ -105,7 +112,7 @@ function Index() {
         />
 
         <Navigation />
-        <ImageGallery faded={galleryFaded} />
+        <ImageGallery faded={galleryFaded} start={galleryStart} />
 
         {/* Button — centered below the gallery strip */}
         <div className="absolute left-1/2 top-1/2 -translate-x-1/2 translate-y-[180px] flex flex-col items-center text-center">

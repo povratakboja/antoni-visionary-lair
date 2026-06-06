@@ -17,7 +17,13 @@ const ARC_AMPLITUDE = 90; // depth of the U-curve in px (edges sit this far belo
 const MAX_TILT = 12; // max rotation in degrees at the entering/exiting edges
 const SPEED = 30; // px per second
 
-export function ImageGallery({ faded = false }: { faded?: boolean }) {
+export function ImageGallery({
+  faded = false,
+  start = true,
+}: {
+  faded?: boolean;
+  start?: boolean;
+}) {
   const loop = useMemo(() => [...IMAGES, ...IMAGES], []);
   const itemsRef = useRef<(HTMLImageElement | null)[]>([]);
   const rafRef = useRef<number | null>(null);
@@ -44,6 +50,7 @@ export function ImageGallery({ faded = false }: { faded?: boolean }) {
   const arcHalf = travelWidth / 2;
 
   useEffect(() => {
+    if (!start) return;
     const tick = (t: number) => {
       if (lastTRef.current == null) lastTRef.current = t;
       const dt = (t - lastTRef.current) / 1000;
@@ -61,8 +68,11 @@ export function ImageGallery({ faded = false }: { faded?: boolean }) {
         const centerX = x + IMG_SIZE / 2;
         const norm = (centerX - arcCenter) / arcHalf; // -1..1 across travel
         const clamped = Math.max(-1, Math.min(1, norm));
-        const arcY = ARC_AMPLITUDE * clamped * clamped;
-        const rot = clamped * MAX_TILT;
+        // smoothstep on |t| → zero slope at peak AND at edges, rounding the corners
+        const u = Math.abs(clamped);
+        const eased = u * u * (3 - 2 * u);
+        const arcY = ARC_AMPLITUDE * eased;
+        const rot = Math.sign(clamped) * MAX_TILT * eased;
         el.style.transform = `translate(${drawX}px, ${arcY}px) rotate(${rot}deg)`;
       });
 
@@ -73,7 +83,7 @@ export function ImageGallery({ faded = false }: { faded?: boolean }) {
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
       lastTRef.current = null;
     };
-  }, [totalWidth, arcCenter, arcHalf, STEP]);
+  }, [totalWidth, arcCenter, arcHalf, STEP, start]);
 
   return (
     <div
