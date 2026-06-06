@@ -17,7 +17,13 @@ const ARC_AMPLITUDE = 90; // depth of the U-curve in px (edges sit this far belo
 const MAX_TILT = 12; // max rotation in degrees at the entering/exiting edges
 const SPEED = 30; // px per second
 
-export function ImageGallery({ faded = false }: { faded?: boolean }) {
+export function ImageGallery({
+  faded = false,
+  start = true,
+}: {
+  faded?: boolean;
+  start?: boolean;
+}) {
   const loop = useMemo(() => [...IMAGES, ...IMAGES], []);
   const itemsRef = useRef<(HTMLImageElement | null)[]>([]);
   const rafRef = useRef<number | null>(null);
