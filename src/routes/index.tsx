@@ -98,17 +98,7 @@ function Index() {
           className="pointer-events-none absolute inset-0 transition-opacity duration-[4000ms] ease-in-out"
           style={{
             opacity: deepSpace ? 1 : 0,
-            backgroundImage:
-              "radial-gradient(1px 1px at 12% 18%, #ffffff, transparent)," +
-              "radial-gradient(1px 1px at 27% 62%, #cbd5ff, transparent)," +
-              "radial-gradient(1.5px 1.5px at 44% 31%, #ffd9a8, transparent)," +
-              "radial-gradient(1px 1px at 61% 78%, #ffffff, transparent)," +
-              "radial-gradient(1px 1px at 73% 22%, #b8c7ff, transparent)," +
-              "radial-gradient(1.5px 1.5px at 86% 55%, #ffb8c8, transparent)," +
-              "radial-gradient(1px 1px at 8% 84%, #ffffff, transparent)," +
-              "radial-gradient(1px 1px at 35% 9%, #fff5d0, transparent)," +
-              "radial-gradient(1px 1px at 53% 47%, #ffffff, transparent)," +
-              "radial-gradient(1px 1px at 92% 88%, #d6e0ff, transparent)",
+            backgroundImage: STARS_BG,
           }}
         />
 
