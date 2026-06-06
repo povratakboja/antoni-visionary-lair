@@ -39,7 +39,7 @@ function Index() {
 
   useEffect(() => {
     if (isLoading) return;
-    const id = window.setTimeout(() => setGalleryStart(true), 1000);
+    const id = window.setTimeout(() => setGalleryStart(true), 2000);
     return () => window.clearTimeout(id);
   }, [isLoading]);
 
