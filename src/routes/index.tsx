@@ -77,7 +77,7 @@ function Index() {
   return (
     <>
       {isLoading && <LoadingScreen onComplete={handleLoadingComplete} />}
-      <div className="relative min-h-screen overflow-hidden bg-[#F5F2EE]">
+      <div id="page-wrapper" className="relative min-h-screen overflow-hidden bg-[#EDE8DF]">
         {/* Deep space layer fades in over the off-white */}
         <div
           aria-hidden
@@ -132,7 +132,7 @@ function Index() {
                   ? {
                       fontSize: "3.75rem",
                       color: deepSpace ? "#e8e8f0" : "#1a1a1a",
-                      background: "rgba(245, 242, 238, 0.85)",
+                      background: "rgba(237, 232, 223, 0.85)",
                       padding: "2rem 3rem",
                       backdropFilter: "blur(4px)",
                       WebkitBackdropFilter: "blur(4px)",
