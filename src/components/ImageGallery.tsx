@@ -1,18 +1,24 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 
-// Placeholder images — replace files in /public/images/ later and swap to /images/xxx.jpg
+// Images from /public/images/ - referenced directly since public folder is served as root
 const IMAGES = [
-  "https://picsum.photos/seed/abv1/600/600",
-  "https://picsum.photos/seed/abv2/600/600",
-  "https://picsum.photos/seed/abv3/600/600",
-  "https://picsum.photos/seed/abv4/600/600",
-  "https://picsum.photos/seed/abv5/600/600",
-  "https://picsum.photos/seed/abv6/600/600",
-  "https://picsum.photos/seed/abv7/600/600",
-  "https://picsum.photos/seed/abv8/600/600",
+  '/images/4e0bd6c5-a9c0-4aa2-9801-31ae5e768703_1818x1228.webp',
+  '/images/5afc7d94-8fd5-4b37-beb2-162e47328a92_1500x1000.webp',
+  '/images/c194d64b-5ee5-4e23-9f26-38c31fc4e5b9_4000x2667.webp',
+  '/images/Screenshot_3-6-2026_201654_sunchicaphotography.com.jpeg',
+  '/images/Screenshot_3-6-2026_20171_sunchicaphotography.com.jpeg',
+  '/images/WhatsApp Image 2026-06-03 at 19.01.30 (1).jpeg',
+  '/images/WhatsApp Image 2026-06-03 at 19.01.30 (2).jpeg',
+  '/images/WhatsApp Image 2026-06-03 at 19.01.30 (3).jpeg',
+  '/images/WhatsApp Image 2026-06-03 at 19.01.30 (5).jpeg',
+  '/images/WhatsApp Image 2026-06-03 at 19.01.30 (6).jpeg',
+  '/images/WhatsApp Image 2026-06-03 at 19.01.30.jpeg',
+  '/images/WhatsApp Image 2026-06-03 at 19.01.31 (1).jpeg',
+  '/images/WhatsApp Image 2026-06-03 at 19.01.31 (2).jpeg',
+  '/images/WhatsApp Image 2026-06-03 at 19.01.31 (3).jpeg',
 ];
 
-const IMG_SIZE = 234;
+const IMG_SIZE = 304; // 234 * 1.3 (increased by 30%)
 const ARC_AMPLITUDE = 90; // depth of the U-curve in px (edges sit this far below the peak)
 const MAX_TILT = 12; // max rotation in degrees at the entering/exiting edges
 const SPEED = 30; // px per second
@@ -37,14 +43,11 @@ export function ImageGallery({ faded = false, active = true }: { faded?: boolean
     return () => window.removeEventListener("resize", onResize);
   }, []);
 
-  // Visible travel range: from fully off-screen right (drawX = vw)
-  // to fully off-screen left (drawX = -IMG_SIZE). Distance = vw + IMG_SIZE.
-  // Keep STEP at travelWidth/IMAGES.length so visual density / speed match before.
-  const travelWidth = vw + IMG_SIZE * 2 + 324; // +324 preserves the original inter-image gap
-  const STEP = travelWidth / IMAGES.length;
+  // Fixed spacing between images (same as original with 8 images)
+  const STEP = IMG_SIZE + 194; // image width + gap between images (324 * 0.6 = 194, reduced by 40%)
   const travelDistance = vw + IMG_SIZE; // px an image actually crosses on screen
   const travelTime = travelDistance / SPEED; // seconds an image is alive on screen
-  const slotPeriod = (IMAGES.length * STEP) / SPEED; // seconds between an image's re-entries
+  const slotPeriod = (loop.length * STEP) / SPEED; // seconds between an image's re-entries
 
   useEffect(() => {
     if (!active) return;

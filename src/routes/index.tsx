@@ -69,8 +69,8 @@ function Index() {
         setQuote(null);
         // begin gallery fade alongside background transition
         window.setTimeout(() => setGalleryFaded(true), 50);
-        // once images have faded, launch the tunnel sequence
-        window.setTimeout(() => setShowTunnel(true), 2800);
+        // Launch tunnel with smooth cross dissolve delay
+        window.setTimeout(() => setShowTunnel(true), 2000);
       }
     },
     [triggerFlash],
@@ -83,27 +83,17 @@ function Index() {
   return (
     <>
       {isLoading && <LoadingScreen onComplete={handleLoadingComplete} />}
-      <div id="page-wrapper" className="relative min-h-screen overflow-hidden bg-[#EDE8DF]">
-        {/* Deep space layer fades in over the off-white */}
+      <div
+        id="page-wrapper"
+        className="relative min-h-screen overflow-hidden"
+        style={{ backgroundColor: "#EDE8DF" }}
+      >
+        {/* Cross dissolve overlay - smooth transition to black */}
         <div
           aria-hidden
-          className="pointer-events-none absolute inset-0 transition-opacity duration-[4000ms] ease-in-out"
-          style={{
-            opacity: deepSpace ? 1 : 0,
-            background:
-              "radial-gradient(ellipse at 20% 30%, rgba(80,40,140,0.25), transparent 55%)," +
-              "radial-gradient(ellipse at 75% 70%, rgba(20,60,140,0.3), transparent 60%)," +
-              "radial-gradient(circle at 50% 50%, #050814 0%, #02030a 70%, #000000 100%)",
-          }}
-        />
-        {/* Stars layer (canvas) */}
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-0 transition-opacity duration-[4000ms] ease-in-out"
+          className="pointer-events-none absolute inset-0 bg-black transition-opacity duration-[2000ms] ease-in-out"
           style={{ opacity: deepSpace ? 1 : 0 }}
-        >
-          <StarField />
-        </div>
+        />
 
 
         <Navigation />
