@@ -23,7 +23,7 @@ const IMAGES = [
 
 type Phase = "rushing" | "whiteFlash" | "pureBlack" | "holdText" | "tvOff" | "done";
 
-export function Tunnel({ onComplete }: { onComplete: () => void }) {
+export function TunnelOriginal({ onComplete }: { onComplete: () => void }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const gridCanvasRef = useRef<HTMLCanvasElement>(null);
   const [phase, setPhase] = useState<Phase>("rushing");
@@ -84,7 +84,7 @@ export function Tunnel({ onComplete }: { onComplete: () => void }) {
     const textureLoader = new THREE.TextureLoader();
     const PLANE_COUNT = 30;
     const SPACING = 40; // Distance between planes
-    const FAR_START = -160; // Images start far away
+    const FAR_START = -220; // Images start far away
     const NEAR_DISTANCE = 50; // Distance at which images reach full size
     const BASE_SIZE = 6; // Base plane size
     let currentImageIndex = 0;
@@ -162,9 +162,11 @@ export function Tunnel({ onComplete }: { onComplete: () => void }) {
       // This ensures first image starts at FAR_START and travels full distance
       imageGroup.position.z = FAR_START - (i * SPACING);
 
-      // Position all images in center (straight through tunnel)
-      imageGroup.position.x = 0;
-      imageGroup.position.y = 0;
+      // Position in circular pattern around tunnel center
+      const angle = (i % 8) * (Math.PI / 4); // 8 positions around circle
+      const radius = 5;
+      imageGroup.position.x = Math.cos(angle) * radius;
+      imageGroup.position.y = Math.sin(angle) * radius;
 
       // Start at near-zero scale (microscopic)
       imageGroup.scale.set(0.001, 0.001, 0.001);
@@ -465,7 +467,7 @@ export function Tunnel({ onComplete }: { onComplete: () => void }) {
 
         if (imageMesh) (imageMesh.material as THREE.MeshBasicMaterial).opacity = opacity;
         if (frameMesh) (frameMesh.material as THREE.MeshBasicMaterial).opacity = opacity * 0.9; // Frame slightly less opaque
-        if (glowMesh) (glowMesh.material as THREE.MeshBasicMaterial).opacity = opacity * 0.125; // Half glow intensity
+        if (glowMesh) (glowMesh.material as THREE.MeshBasicMaterial).opacity = opacity * 0.25; // Subtle glow
 
         // Recycle when plane passes camera (exits screen)
         // BUT: stop recycling during exit phase - let all images fly out
@@ -546,16 +548,14 @@ export function Tunnel({ onComplete }: { onComplete: () => void }) {
       // Dispose image planes (now Groups containing multiple meshes)
       imagePlanes.forEach(plane => {
         if (plane) {
-          // Dispose all children in the group (glow, frame, image)
-          if (plane.children) {
-            plane.children.forEach((child: any) => {
-              if (child?.geometry) child.geometry.dispose();
-              if (child?.material) {
-                if (child.material.map) child.material.map.dispose();
-                child.material.dispose();
-              }
-            });
-          }
+          // Dispose all children in the group
+          plane.children.forEach((child: any) => {
+            if (child && child.geometry) child.geometry.dispose();
+            if (child && child.material) {
+              if (child.material.map) child.material.map.dispose();
+              child.material.dispose();
+            }
+          });
           // Dispose group geometry/material if they exist
           if (plane.geometry) plane.geometry.dispose();
           if (plane.material) (plane.material as THREE.Material).dispose();

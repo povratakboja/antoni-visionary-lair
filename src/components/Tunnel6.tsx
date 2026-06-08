@@ -23,7 +23,7 @@ const IMAGES = [
 
 type Phase = "rushing" | "whiteFlash" | "pureBlack" | "holdText" | "tvOff" | "done";
 
-export function Tunnel({ onComplete }: { onComplete: () => void }) {
+export function Tunnel6({ onComplete }: { onComplete: () => void }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const gridCanvasRef = useRef<HTMLCanvasElement>(null);
   const [phase, setPhase] = useState<Phase>("rushing");
@@ -31,6 +31,7 @@ export function Tunnel({ onComplete }: { onComplete: () => void }) {
   const lastImageExitTimeRef = useRef<number | null>(null);
   const flashTriggeredRef = useRef<boolean>(false);
   const sceneBlackenedRef = useRef<boolean>(false);
+  const [pulseIntensity, setPulseIntensity] = useState(0);
 
   useEffect(() => {
     const prevOverflow = document.body.style.overflow;
@@ -194,7 +195,7 @@ export function Tunnel({ onComplete }: { onComplete: () => void }) {
     // Acceleration timeline - much more gradual
     const CALM_DURATION = 4000; // 4 seconds for first 3 images - slow & clear
     const ACCEL_DURATION = 7000; // 7 seconds to gradually reach max speed
-    const MAX_SPEED_DURATION = 2000; // 2 seconds at max speed only
+    const MAX_SPEED_DURATION = 800; // 0.8 seconds at max speed (shorter hold)
     const EXIT_DURATION = 2000; // 2 seconds to clear all images from screen
 
     // Draw perspective square corridor tunnel - like reference image
@@ -424,11 +425,23 @@ export function Tunnel({ onComplete }: { onComplete: () => void }) {
           lastImageExitTimeRef.current = Date.now();
         }
 
-        // Trigger white flash immediately when last image exits (0.5s earlier than before)
+        // Single strong pulse before flash
         if (lastImageExitTimeRef.current && !flashTriggeredRef.current) {
-          flashTriggeredRef.current = true;
-          setPhase("whiteFlash");
-          return;
+          const timeSinceExit = Date.now() - lastImageExitTimeRef.current;
+
+          // Single pulse animation over 800ms before flash
+          if (timeSinceExit < 800) {
+            // One strong pulse that grows outward
+            const t = timeSinceExit / 800;
+            const pulse = Math.sin(t * Math.PI) * 1.0; // Full intensity
+            setPulseIntensity(pulse);
+          } else {
+            // After pulse completes, immediately trigger the flash
+            flashTriggeredRef.current = true;
+            setPulseIntensity(0);
+            setPhase("whiteFlash");
+            return;
+          }
         }
       }
 
@@ -538,32 +551,16 @@ export function Tunnel({ onComplete }: { onComplete: () => void }) {
     // Cleanup
     return () => {
       window.removeEventListener('resize', handleResize);
-      if (containerRef.current && containerRef.current.contains(renderer.domElement)) {
+      if (containerRef.current) {
         containerRef.current.removeChild(renderer.domElement);
       }
-      if (renderer) renderer.dispose();
-
-      // Dispose image planes (now Groups containing multiple meshes)
+      renderer.dispose();
       imagePlanes.forEach(plane => {
-        if (plane) {
-          // Dispose all children in the group (glow, frame, image)
-          if (plane.children) {
-            plane.children.forEach((child: any) => {
-              if (child?.geometry) child.geometry.dispose();
-              if (child?.material) {
-                if (child.material.map) child.material.map.dispose();
-                child.material.dispose();
-              }
-            });
-          }
-          // Dispose group geometry/material if they exist
-          if (plane.geometry) plane.geometry.dispose();
-          if (plane.material) (plane.material as THREE.Material).dispose();
-        }
+        plane.geometry.dispose();
+        (plane.material as THREE.Material).dispose();
       });
-
-      if (starGeometry) starGeometry.dispose();
-      if (starMaterial) starMaterial.dispose();
+      starGeometry.dispose();
+      starMaterial.dispose();
     };
   }, []);
 
@@ -636,6 +633,27 @@ export function Tunnel({ onComplete }: { onComplete: () => void }) {
             zIndex: 12,
             background: "radial-gradient(circle at center, transparent 0%, transparent 40%, rgba(0,0,0,0.4) 70%, rgba(0,0,0,0.8) 100%)"
           }}
+        />
+      )}
+
+      {/* Pulsing sphere of light at vanishing point - pure circular glow */}
+      {phase === "rushing" && pulseIntensity > 0 && (
+        <motion.div
+          className="absolute pointer-events-none rounded-full"
+          style={{
+            zIndex: 20,
+            left: "50%",
+            top: "50%",
+            transform: "translate(-50%, -50%)",
+            background: `radial-gradient(circle, rgba(255,255,255,${pulseIntensity}) 0%, rgba(255,255,255,${pulseIntensity * 0.5}) 50%, transparent 100%)`,
+          }}
+          animate={{
+            width: `${pulseIntensity * 50}px`,
+            height: `${pulseIntensity * 50}px`,
+            opacity: pulseIntensity * 0.9,
+            boxShadow: `0 0 ${pulseIntensity * 38}px ${pulseIntensity * 20}px rgba(255, 255, 255, ${pulseIntensity * 0.8})`,
+          }}
+          transition={{ duration: 0 }}
         />
       )}
 

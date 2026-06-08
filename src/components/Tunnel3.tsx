@@ -23,7 +23,7 @@ const IMAGES = [
 
 type Phase = "rushing" | "whiteFlash" | "pureBlack" | "holdText" | "tvOff" | "done";
 
-export function Tunnel({ onComplete }: { onComplete: () => void }) {
+export function Tunnel3({ onComplete }: { onComplete: () => void }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const gridCanvasRef = useRef<HTMLCanvasElement>(null);
   const [phase, setPhase] = useState<Phase>("rushing");
@@ -84,9 +84,9 @@ export function Tunnel({ onComplete }: { onComplete: () => void }) {
     const textureLoader = new THREE.TextureLoader();
     const PLANE_COUNT = 30;
     const SPACING = 40; // Distance between planes
-    const FAR_START = -160; // Images start far away
+    const FAR_START = -120; // Images start closer
     const NEAR_DISTANCE = 50; // Distance at which images reach full size
-    const BASE_SIZE = 6; // Base plane size
+    const BASE_SIZE = 5.1; // Base plane size (15% smaller than 6)
     let currentImageIndex = 0;
 
     console.log('Loading images:', IMAGES.length);
@@ -538,32 +538,16 @@ export function Tunnel({ onComplete }: { onComplete: () => void }) {
     // Cleanup
     return () => {
       window.removeEventListener('resize', handleResize);
-      if (containerRef.current && containerRef.current.contains(renderer.domElement)) {
+      if (containerRef.current) {
         containerRef.current.removeChild(renderer.domElement);
       }
-      if (renderer) renderer.dispose();
-
-      // Dispose image planes (now Groups containing multiple meshes)
+      renderer.dispose();
       imagePlanes.forEach(plane => {
-        if (plane) {
-          // Dispose all children in the group (glow, frame, image)
-          if (plane.children) {
-            plane.children.forEach((child: any) => {
-              if (child?.geometry) child.geometry.dispose();
-              if (child?.material) {
-                if (child.material.map) child.material.map.dispose();
-                child.material.dispose();
-              }
-            });
-          }
-          // Dispose group geometry/material if they exist
-          if (plane.geometry) plane.geometry.dispose();
-          if (plane.material) (plane.material as THREE.Material).dispose();
-        }
+        plane.geometry.dispose();
+        (plane.material as THREE.Material).dispose();
       });
-
-      if (starGeometry) starGeometry.dispose();
-      if (starMaterial) starMaterial.dispose();
+      starGeometry.dispose();
+      starMaterial.dispose();
     };
   }, []);
 
