@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useCallback, useState } from "react";
 import { LoadingScreen } from "@/components/LoadingScreen";
-import { Navigation } from "@/components/Navigation";
+import { NavigationMobile } from "@/components/NavigationMobile";
 import { ImageGallery } from "@/components/ImageGallery";
 import { HurryButton } from "@/components/HurryButton";
 import { FlashOverlay } from "@/components/FlashOverlay";
@@ -125,7 +125,7 @@ function Mobitel() {
         />
 
 
-        <Navigation />
+        <NavigationMobile />
         {/* Gallery - view only, no swipe/scroll on mobile */}
         <div style={{ touchAction: "none", pointerEvents: "none" }}>
           <ImageGallery faded={galleryFaded} active={heroDone} />

@@ -9,12 +9,72 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SvemiroriginalRouteImport } from './routes/svemiroriginal'
+import { Route as Svemir6RouteImport } from './routes/svemir6'
+import { Route as Svemir5RouteImport } from './routes/svemir5'
+import { Route as Svemir4RouteImport } from './routes/svemir4'
+import { Route as Svemir3RouteImport } from './routes/svemir3'
+import { Route as Svemir2RouteImport } from './routes/svemir2'
+import { Route as SvemirRouteImport } from './routes/svemir'
+import { Route as PulsiranjeRouteImport } from './routes/pulsiranje'
 import { Route as NotFoundRouteImport } from './routes/not-found'
+import { Route as MobitelRouteImport } from './routes/mobitel'
+import { Route as HomepagetestRouteImport } from './routes/homepagetest'
 import { Route as IndexRouteImport } from './routes/index'
 
+const SvemiroriginalRoute = SvemiroriginalRouteImport.update({
+  id: '/svemiroriginal',
+  path: '/svemiroriginal',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const Svemir6Route = Svemir6RouteImport.update({
+  id: '/svemir6',
+  path: '/svemir6',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const Svemir5Route = Svemir5RouteImport.update({
+  id: '/svemir5',
+  path: '/svemir5',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const Svemir4Route = Svemir4RouteImport.update({
+  id: '/svemir4',
+  path: '/svemir4',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const Svemir3Route = Svemir3RouteImport.update({
+  id: '/svemir3',
+  path: '/svemir3',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const Svemir2Route = Svemir2RouteImport.update({
+  id: '/svemir2',
+  path: '/svemir2',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SvemirRoute = SvemirRouteImport.update({
+  id: '/svemir',
+  path: '/svemir',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PulsiranjeRoute = PulsiranjeRouteImport.update({
+  id: '/pulsiranje',
+  path: '/pulsiranje',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const NotFoundRoute = NotFoundRouteImport.update({
   id: '/not-found',
   path: '/not-found',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MobitelRoute = MobitelRouteImport.update({
+  id: '/mobitel',
+  path: '/mobitel',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HomepagetestRoute = HomepagetestRouteImport.update({
+  id: '/homepagetest',
+  path: '/homepagetest',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -25,37 +85,184 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/homepagetest': typeof HomepagetestRoute
+  '/mobitel': typeof MobitelRoute
   '/not-found': typeof NotFoundRoute
+  '/pulsiranje': typeof PulsiranjeRoute
+  '/svemir': typeof SvemirRoute
+  '/svemir2': typeof Svemir2Route
+  '/svemir3': typeof Svemir3Route
+  '/svemir4': typeof Svemir4Route
+  '/svemir5': typeof Svemir5Route
+  '/svemir6': typeof Svemir6Route
+  '/svemiroriginal': typeof SvemiroriginalRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/homepagetest': typeof HomepagetestRoute
+  '/mobitel': typeof MobitelRoute
   '/not-found': typeof NotFoundRoute
+  '/pulsiranje': typeof PulsiranjeRoute
+  '/svemir': typeof SvemirRoute
+  '/svemir2': typeof Svemir2Route
+  '/svemir3': typeof Svemir3Route
+  '/svemir4': typeof Svemir4Route
+  '/svemir5': typeof Svemir5Route
+  '/svemir6': typeof Svemir6Route
+  '/svemiroriginal': typeof SvemiroriginalRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/homepagetest': typeof HomepagetestRoute
+  '/mobitel': typeof MobitelRoute
   '/not-found': typeof NotFoundRoute
+  '/pulsiranje': typeof PulsiranjeRoute
+  '/svemir': typeof SvemirRoute
+  '/svemir2': typeof Svemir2Route
+  '/svemir3': typeof Svemir3Route
+  '/svemir4': typeof Svemir4Route
+  '/svemir5': typeof Svemir5Route
+  '/svemir6': typeof Svemir6Route
+  '/svemiroriginal': typeof SvemiroriginalRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/not-found'
+  fullPaths:
+    | '/'
+    | '/homepagetest'
+    | '/mobitel'
+    | '/not-found'
+    | '/pulsiranje'
+    | '/svemir'
+    | '/svemir2'
+    | '/svemir3'
+    | '/svemir4'
+    | '/svemir5'
+    | '/svemir6'
+    | '/svemiroriginal'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/not-found'
-  id: '__root__' | '/' | '/not-found'
+  to:
+    | '/'
+    | '/homepagetest'
+    | '/mobitel'
+    | '/not-found'
+    | '/pulsiranje'
+    | '/svemir'
+    | '/svemir2'
+    | '/svemir3'
+    | '/svemir4'
+    | '/svemir5'
+    | '/svemir6'
+    | '/svemiroriginal'
+  id:
+    | '__root__'
+    | '/'
+    | '/homepagetest'
+    | '/mobitel'
+    | '/not-found'
+    | '/pulsiranje'
+    | '/svemir'
+    | '/svemir2'
+    | '/svemir3'
+    | '/svemir4'
+    | '/svemir5'
+    | '/svemir6'
+    | '/svemiroriginal'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  HomepagetestRoute: typeof HomepagetestRoute
+  MobitelRoute: typeof MobitelRoute
   NotFoundRoute: typeof NotFoundRoute
+  PulsiranjeRoute: typeof PulsiranjeRoute
+  SvemirRoute: typeof SvemirRoute
+  Svemir2Route: typeof Svemir2Route
+  Svemir3Route: typeof Svemir3Route
+  Svemir4Route: typeof Svemir4Route
+  Svemir5Route: typeof Svemir5Route
+  Svemir6Route: typeof Svemir6Route
+  SvemiroriginalRoute: typeof SvemiroriginalRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/svemiroriginal': {
+      id: '/svemiroriginal'
+      path: '/svemiroriginal'
+      fullPath: '/svemiroriginal'
+      preLoaderRoute: typeof SvemiroriginalRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/svemir6': {
+      id: '/svemir6'
+      path: '/svemir6'
+      fullPath: '/svemir6'
+      preLoaderRoute: typeof Svemir6RouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/svemir5': {
+      id: '/svemir5'
+      path: '/svemir5'
+      fullPath: '/svemir5'
+      preLoaderRoute: typeof Svemir5RouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/svemir4': {
+      id: '/svemir4'
+      path: '/svemir4'
+      fullPath: '/svemir4'
+      preLoaderRoute: typeof Svemir4RouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/svemir3': {
+      id: '/svemir3'
+      path: '/svemir3'
+      fullPath: '/svemir3'
+      preLoaderRoute: typeof Svemir3RouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/svemir2': {
+      id: '/svemir2'
+      path: '/svemir2'
+      fullPath: '/svemir2'
+      preLoaderRoute: typeof Svemir2RouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/svemir': {
+      id: '/svemir'
+      path: '/svemir'
+      fullPath: '/svemir'
+      preLoaderRoute: typeof SvemirRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pulsiranje': {
+      id: '/pulsiranje'
+      path: '/pulsiranje'
+      fullPath: '/pulsiranje'
+      preLoaderRoute: typeof PulsiranjeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/not-found': {
       id: '/not-found'
       path: '/not-found'
       fullPath: '/not-found'
       preLoaderRoute: typeof NotFoundRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/mobitel': {
+      id: '/mobitel'
+      path: '/mobitel'
+      fullPath: '/mobitel'
+      preLoaderRoute: typeof MobitelRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/homepagetest': {
+      id: '/homepagetest'
+      path: '/homepagetest'
+      fullPath: '/homepagetest'
+      preLoaderRoute: typeof HomepagetestRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -70,7 +277,17 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  HomepagetestRoute: HomepagetestRoute,
+  MobitelRoute: MobitelRoute,
   NotFoundRoute: NotFoundRoute,
+  PulsiranjeRoute: PulsiranjeRoute,
+  SvemirRoute: SvemirRoute,
+  Svemir2Route: Svemir2Route,
+  Svemir3Route: Svemir3Route,
+  Svemir4Route: Svemir4Route,
+  Svemir5Route: Svemir5Route,
+  Svemir6Route: Svemir6Route,
+  SvemiroriginalRoute: SvemiroriginalRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
