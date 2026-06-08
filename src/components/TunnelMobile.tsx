@@ -467,10 +467,13 @@ export function TunnelMobile({ onComplete }: { onComplete: () => void }) {
 
     animate();
 
-    // Initialize grid canvas size
+    // Initialize grid canvas size - force correct dimensions on mobile
     if (gridCanvasRef.current) {
-      gridCanvasRef.current.width = window.innerWidth;
-      gridCanvasRef.current.height = window.innerHeight;
+      const canvas = gridCanvasRef.current;
+      // Set internal canvas resolution (not CSS size)
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      console.log('Grid canvas initialized:', canvas.width, 'x', canvas.height, 'aspect:', canvas.width / canvas.height);
     }
 
     // Handle window resize
@@ -479,10 +482,12 @@ export function TunnelMobile({ onComplete }: { onComplete: () => void }) {
       camera.updateProjectionMatrix();
       renderer.setSize(window.innerWidth, window.innerHeight);
 
-      // Resize grid canvas too
+      // Resize grid canvas too - force correct dimensions
       if (gridCanvasRef.current) {
-        gridCanvasRef.current.width = window.innerWidth;
-        gridCanvasRef.current.height = window.innerHeight;
+        const canvas = gridCanvasRef.current;
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        console.log('Grid canvas resized:', canvas.width, 'x', canvas.height);
       }
     };
     window.addEventListener('resize', handleResize);
@@ -565,11 +570,15 @@ export function TunnelMobile({ onComplete }: { onComplete: () => void }) {
       <canvas
         ref={gridCanvasRef}
         className="absolute inset-0 pointer-events-none"
+        width={typeof window !== 'undefined' ? window.innerWidth : 800}
+        height={typeof window !== 'undefined' ? window.innerHeight : 600}
         style={{
           zIndex: 10,
           opacity: phase === "rushing" ? 1 : 0,
           visibility: phase === "rushing" ? "visible" : "hidden",
-          display: phase === "rushing" ? "block" : "none"
+          display: phase === "rushing" ? "block" : "none",
+          width: '100%',
+          height: '100%',
         }}
       />
 
